@@ -1,4 +1,4 @@
-function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, p_spike, proposalVar, Dt, A)
+function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, p_spike, proposalVar, Dt, A)
     
     %addMoves, dropMoves, and timeMoves give acceptance probabilities for each subclass of move
     %the samples will be a cell array of lists of spike times - the spike times won't be sorted but this shouldn't be a problem.
