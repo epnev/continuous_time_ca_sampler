@@ -1,4 +1,4 @@
-function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, p_spike, proposalVar, Dt, A)
+function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, lam, proposalVar, Dt, A)
     
     %addMoves, dropMoves, and timeMoves give acceptance probabilities for each subclass of move
     %the samples will be a cell array of lists of spike times - the spike times won't be sorted but this shouldn't be a problem.
@@ -24,7 +24,6 @@ function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,ca
     %initial logC - compute likelihood initially completely - updates to likelihood will be local
     logC = -(ci-calciumSignal)*(ci-calciumSignal)'; 
     
-    m = p_spike*Dt*T;
     
     %flag for uniform vs likelihood proposal (if using likelihood proposal, then time shifts are pure Gibbs)
     %this really should be split into four cases, 
@@ -120,7 +119,7 @@ function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,ca
             rprob = 1/(N+1);
             
             %accept or reject
-            ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*(m/(T*Dt)); %posterior times reverse prob/forward prob
+            ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*lam); %posterior times reverse prob/forward prob
             if ratio>1 %accept
                 si = si_;
                 ci = ci_;
@@ -150,7 +149,7 @@ function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,ca
                 fprob = 1/N;
                 
                 %accept or reject
-                ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*((T*Dt)/m); %posterior times reverse prob/forward prob
+                ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*(1/lam); %posterior times reverse prob/forward prob
                
                 if ratio>1 %accept
                     si = si_;
