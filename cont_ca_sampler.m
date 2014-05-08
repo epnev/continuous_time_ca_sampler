@@ -122,7 +122,8 @@ for i = 1:N
         Gam(i) = g;
     end
     sg_ = sg;
-    [spiketimes, ~]  = get_next_spikes(spiketimes_(:)',(A_*(G\s_(:)))',Ym',ge',tau,sg_^2, lam_, 20*Dt, Dt, A_);
+    rate = @(t) lambda_rate(t,lam_);
+    [spiketimes, ~]  = get_next_spikes(spiketimes_(:)',(A_*(G\s_(:)))',Ym',ge',tau,sg_^2, rate, 20*Dt, Dt, A_);
 
     spiketimes_ = spiketimes;
     spiketimes(spiketimes<0) = -spiketimes(spiketimes<0);
@@ -134,7 +135,7 @@ for i = 1:N
     nsp = length(spiketimes);
     ns(i) = nsp;
     lam(i) = nsp/(T*Dt);
-
+    lam_ = lam(i);
     
     AM = [G\s_(:),ones(T,1),ge];
     L = inv(Ld + AM'*AM/sg^2);

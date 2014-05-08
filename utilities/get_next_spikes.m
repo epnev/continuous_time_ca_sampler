@@ -64,7 +64,7 @@ function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,ca
             [si_, ci_, logC_] = addSpike(si_,ci_,logC_,ef,tau,calciumSignal,tmpi_,Dt,A);
             
             %accept or reject
-            ratio = exp((1/(2*calciumNoiseVar))*(logC_-logC));
+            ratio = exp((1/(2*calciumNoiseVar))*(logC_-logC))*(lam(tmpi)/lam(tmpi_));
             if ratio>1 %accept
                 si = si_;
                 ci = ci_;
@@ -119,7 +119,7 @@ function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,ca
             rprob = 1/(N+1);
             
             %accept or reject
-            ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*lam); %posterior times reverse prob/forward prob
+            ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*lam(tmpi); %posterior times reverse prob/forward prob
             if ratio>1 %accept
                 si = si_;
                 ci = ci_;
@@ -149,7 +149,7 @@ function [samples, ci, timeMoves]  = get_next_spikes(curr_spikes,curr_calcium,ca
                 fprob = 1/N;
                 
                 %accept or reject
-                ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*(1/lam); %posterior times reverse prob/forward prob
+                ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*(1/lam(si(tmpi))); %posterior times reverse prob/forward prob
                
                 if ratio>1 %accept
                     si = si_;
