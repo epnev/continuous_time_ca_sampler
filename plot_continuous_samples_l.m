@@ -40,20 +40,24 @@ for i = 1:T
 end
     
 figure;
+    cmap = bone(100);
+    cmap(2:26,:) = [];
     set(gcf, 'PaperUnits', 'inches','Units', 'inches')           
     set(gcf, 'PaperPositionMode', 'manual')
-    set(gcf, 'PaperPosition',[0,0, 14, 15])
-    set(gcf, 'Position',[2,2, 14, 15])
+    set(gcf, 'PaperPosition',[0,0, 14, 12])
+    set(gcf, 'Position',[2,2, 14, 12])
     subplot(rows,4,[1:4]);plot(Dt*(1:T),Y); hold all; plot(Dt*(1:T),mean(C_rec,1),'linewidth',2); 
-        title('Calcium traces  ','fontweight','bold','fontsize',14)
-        legend('Raw data ','Mean sample'); set(gca,'XTick',[],'Ytick',[])
+        title('Calcium traces  ','fontweight','bold','fontsize',16)
+        leg_ = legend('Raw data  ','Mean sample  '); 
+        set(leg_,'location','Northwest','fontweight','bold','fontsize',16);
+        set(gca,'XTick',[],'Ytick',[])
     subplot(rows,4,[5:8]); imagesc((1:T)*Dt,1:N,Mat);  set(gca,'Xtick',[])
-        title('Spike raster plot','fontweight','bold','fontsize',14);
-        ylabel('Sample # ','fontweight','bold','fontsize',14);
-    subplot(rows,4,[9:12]); imagesc(M/1000); axis xy; set(gca,'Ytick',[0.5:4.5],'Yticklabel',[-1:4]); colormap('gray'); %hold all; plot(traceData.spikeFrames+1); set(gca,'YLim',[1,5])
+        title('Spike raster plot ','fontweight','bold','fontsize',16);
+        ylabel('Sample # ','fontweight','bold','fontsize',16);
+    subplot(rows,4,[9:12]); imagesc(M/1000); axis xy; set(gca,'Ytick',[0.5:4.5],'Yticklabel',[-1:4]); colormap(cmap); %hold all; plot(traceData.spikeFrames+1); set(gca,'YLim',[1,5])
 set(gca,'YLim',[1.5,5]);
 hold all; scatter(1:T,traceData.spikeFrames+1.5);
- ylabel('# of Spikes ','fontweight','bold','fontsize',14);
- xlabel('Timestep ','fontweight','bold','fontsize',14);
- title('Spike Histogram ','fontweight','bold','fontsize',14);
+ ylabel('# of Spikes ','fontweight','bold','fontsize',16);
+ xlabel('Timestep ','fontweight','bold','fontsize',16);
+ title('Spike Histogram ','fontweight','bold','fontsize',16);
     drawnow;

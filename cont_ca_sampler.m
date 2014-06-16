@@ -81,12 +81,13 @@ G = spdiags([-g*ones(T,1),ones(T,1)],[-1,0],T,T);
 sp = G*Z(:);                                   % extract spikes
 c1 = sp(1);
 sp(1) = 0;
-s_in = sp>0.15*max(sp);
+s_in = sp>0.45*max(sp);
 spiketimes_ = Dt*(find(s_in) + rand(size(find(s_in))) - 0.5);
+spiketimes_(spiketimes_ >= T*Dt) = 2*T*Dt - spiketimes_(spiketimes_ >= T*Dt);
 lam_ = length(spiketimes_)/(T*Dt);
 s_ = sparse(ceil(spiketimes_/Dt),1,exp(-(spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau),T,1);
 
-A_   = median(sp(s_in));                       % initial amplitude value
+A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
 b_   = P.Cb;                                   % initial baseline value'
 C_in = c1;       % initial value sample
 ge = P.g.^((0:T-1)'); 
@@ -109,7 +110,7 @@ end
 Sp = .1*eye(3);          % prior covariance
 Ld = inv(Sp);
 mu = [A_;b_;C_in];       % prior mean 
-lb = [0.02,0.02,0]';     % lower bound for [A,Cb,Cin]
+lb = [0.1,0.02,0]';      % lower bound for [A,Cb,Cin]
 Ns = 15;                 % Number of HMC samples
 mu_b = mu(2:3);
 Ym = Y - [ones(T,1),ge]*mu_b;
