@@ -10,7 +10,7 @@ function [Z,Cb,SNR] = optimal_foopsi_lars(y,g,sn,Cb)
 % b     baseline
 
 T = length(y);
-G = spdiags([-g*ones(T,1),ones(T,1)],[-1,0],T,T);
+G = spdiags(ones(T,1)*[-g(end:-1:1),1],-length(g):0,T,T);
 
 if nargin == 3
     Ginv = [full(G\speye(T)),ones(T,1)];
@@ -18,8 +18,9 @@ if nargin == 3
     Cb = spikes(end);
     Z = filter(1,[1,-g],spikes(1:T));
 elseif nargin == 4
-    Ginv = toeplitz(g.^(0:T-1),[1,zeros(1,T-1)]);
-    [~, ~, spikes, ~, ~] = lars_regression_noise(y', Ginv, 1, sn^2*T);
+    Ginv = full(G\speye(T));
+    %Ginv = toeplitz(g.^(0:T-1),[1,zeros(1,T-1)]);
+    [~, ~, spikes, ~, ~] = lars_regression_noise(y'-Cb, Ginv, 1, sn^2*T);
     Z = filter(1,[1,-g],spikes(1:T));
 else
     error('wrong number of inputs provided');
