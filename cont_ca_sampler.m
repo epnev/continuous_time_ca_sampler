@@ -114,8 +114,8 @@ spiketimes_ = Dt*(find(s_in) + rand(size(find(s_in))) - 0.5);
 spiketimes_(spiketimes_ >= T*Dt) = 2*T*Dt - spiketimes_(spiketimes_ >= T*Dt);
 lam_ = length(spiketimes_)/(T*Dt);
 
-s_1 =   sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_1),T,1);  
-s_2 =   sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_2),T,1);  
+s_1 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_1),T,1);  
+s_2 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_2),T,1);  
 
 
 A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
@@ -160,6 +160,7 @@ end
 Sp = .1*eye(2+p);          % prior covariance
 Ld = inv(Sp);
 <<<<<<< HEAD
+<<<<<<< HEAD
 mu = [A_;b_;C_in];       % prior mean 
 lb = [0.1,0.02,0]';      % lower bound for [A,Cb,Cin]
 A_ = max(A_,1.1*lb(1));
@@ -167,11 +168,16 @@ Ns = 15;                 % Number of HMC samples
 mu_b = mu(2:3);
 Ym = Y - [ones(T,1),ge]*mu_b;
 =======
+=======
+>>>>>>> FETCH_HEAD
 mu = [A_;b_;C_in];                % prior mean 
 lb = [0.1,0.02,zeros(1,p)]';      % lower bound for [A,Cb,Cin]
 Ns = 15;                          % Number of HMC samples
 
 Ym = Y - ones(T,1)*mu(2) - ge*mu(2+(1:p));
+<<<<<<< HEAD
+>>>>>>> FETCH_HEAD
+=======
 >>>>>>> FETCH_HEAD
 
 mub = zeros(1+p,1);
