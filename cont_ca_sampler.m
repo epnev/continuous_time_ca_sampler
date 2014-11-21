@@ -159,11 +159,11 @@ end
 
 Sp = .1*eye(2+p);          % prior covariance
 Ld = inv(Sp);
+lb = [0.1,0.02,zeros(1,p)]';      % lower bound for [A,Cb,Cin]
 
 A_ = max(A_,1.1*lb(1));
 
 mu = [A_;b_;C_in];                % prior mean 
-lb = [0.1,0.02,zeros(1,p)]';      % lower bound for [A,Cb,Cin]
 Ns = 15;                          % Number of HMC samples
 
 Ym = Y - ones(T,1)*mu(2) - ge*mu(2+(1:p));
