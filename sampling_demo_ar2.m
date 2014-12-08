@@ -50,7 +50,10 @@ stem(spikes_foopsi); hold all;
     axis([1,T,0,max(spikes(:,2))-0.95+max(spikes_foopsi)]);
     title('Foopsi Spikes','FontWeight','bold','Fontsize',14); xlabel('Timestep','FontWeight','bold','Fontsize',16);
     legend('Foopsi Spikes','Ground Truth');
-    
-%% MCMC    
-SAMPLES = cont_ca_sampler(y_r,P,500,500,params);    %% MCMC        
-plot_continuous_samples(SAMPLES,P,y_r(:));
+    drawnow;
+%% MCMC   
+P.Cb = cb;
+SAM = get_initial_sample(y_r,P,ca_foopsi);
+params.init = SAM;
+SAMPLES2 = cont_ca_sampler(y_r,P,100,100,params);    %% MCMC        
+plot_continuous_samples(SAMPLES2,P,y_r(:));

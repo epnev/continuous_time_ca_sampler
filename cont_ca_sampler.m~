@@ -117,36 +117,30 @@ if ~isfield(P,'sn')
 end
 sg = P.sn;
 
-if ~isfield(params,'init')
-    fprintf('Initializing using noise constrained FOOPSI...  ');
-    params.init = get_initial_sample(Y,P);
-    fprintf('done. \n');
-end 
-SAM = params.init;    
-spiketimes_ = SAM.spiketimes_;
-lam_ = SAM.lam_;
-A_ = SAM.A_;
-b_ = SAM.b_;
-C_in = SAM.C_in;
-    
-%[Z,~,~] = optimal_foopsi_lars(Y(:)',g,P.sn,P.Cb);
+if isfield(params,'init')
 
-% G = spdiags(ones(T,1)*[-g(end:-1:1),1],[-p:0],T,T);
-% sp = G*Z(:);                                   % extract spikes
-% c1 = sp(1:p);
-% sp(1:p) = 0;
-% s_in = sp>0.15*max(sp);
-% spiketimes_ = Dt*(find(s_in) + rand(size(find(s_in))) - 0.5);
-% spiketimes_(spiketimes_ >= T*Dt) = 2*T*Dt - spiketimes_(spiketimes_ >= T*Dt);
-% lam_ = length(spiketimes_)/(T*Dt);
+else 
+    
+fprintf('Initializing using noise constrained FOOPSI...  ');
+[Z,~,~] = optimal_foopsi_lars(Y(:)',g,P.sn,P.Cb);
+fprintf('done. \n');
+
+G = spdiags(ones(T,1)*[-g(end:-1:1),1],[-p:0],T,T);
+sp = G*Z(:);                                   % extract spikes
+c1 = sp(1:p);
+sp(1:p) = 0;
+s_in = sp>0.15*max(sp);
+spiketimes_ = Dt*(find(s_in) + rand(size(find(s_in))) - 0.5);
+spiketimes_(spiketimes_ >= T*Dt) = 2*T*Dt - spiketimes_(spiketimes_ >= T*Dt);
+lam_ = length(spiketimes_)/(T*Dt);
 
 s_1 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_1),T,1);  
 s_2 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_2),T,1);  
 
 
-% A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
-% b_   = P.Cb;                                   % initial baseline value'
-% C_in = c1 + 1e-3;                              % initial value sample
+A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
+b_   = P.Cb;                                   % initial baseline value'
+C_in = c1 + 1e-3;                              % initial value sample
 
 prec = 1e-2;     % precision
 if p == 1

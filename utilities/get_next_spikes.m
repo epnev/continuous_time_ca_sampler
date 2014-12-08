@@ -1,4 +1,4 @@
-function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, lam, proposalVar, Dt, A)
+function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, lam, proposalVar, add_move, Dt, A)
     
     %addMoves, dropMoves, and timeMoves give acceptance probabilities for each subclass of move
     %the samples will be a cell array of lists of spike times - the spike times won't be sorted but this shouldn't be a problem.
@@ -43,7 +43,8 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
     addMoves = [0 0]; %first elem is number successful, second is number total
     dropMoves = [0 0];
     timeMoves = [0 0];
-    
+    time_move = 0;
+    time_add = 0;
     for i = 1:nsweeps
     
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,7 +97,6 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
 %             pause
             
         end
-        
         N = length(si);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +107,7 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
         %define insertion proposal distribution as the likelihood function
         %define removal proposal distribution as uniform over spikes
         %perhaps better is to choose smarter removals.
-        for ii = 1:10 
+        for ii = 1:add_move 
             %% add
             %propose a uniform add
             tmpi = T*Dt*rand;         
@@ -173,7 +173,6 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         
-        
 %        N_sto = [N_sto N];
 
         samples = si;
@@ -193,4 +192,3 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
         
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    

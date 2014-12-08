@@ -4,7 +4,7 @@ T = length(Y);
 N = length(SAMPLES.ns);
 show_gamma = 0;
 P.f = 1;
-g = P.g;
+g = P.g(:);
 p = length(g);
 Dt = 1/P.f;                                     % length of time bin
 if ~isfield(SAMPLES,'g');
