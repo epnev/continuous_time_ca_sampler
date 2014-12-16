@@ -11,9 +11,9 @@ function [Z,Cb,SNR] = optimal_foopsi_lars(y,g,sn,Cb)
 
 T = length(y);
 G = spdiags(ones(T,1)*[-g(end:-1:1),1],-length(g):0,T,T);
-if T > 5e3;
-   use_cvx = 1;
-end
+%if T > 5e3;
+use_cvx = 1;
+%end
 if nargin == 3
     if use_cvx
         cvx_begin quiet
