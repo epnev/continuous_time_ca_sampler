@@ -31,7 +31,9 @@ function SAMPLES = cont_ca_sampler(Y,P,Nsamples,B,params)
 
 % Author: Eftychios A. Pnevmatikakis
 
+Y = Y(:);
 T = length(Y);
+P.f = 1;
 Dt = 1/P.f;                                     % length of time bin
 
 if nargin == 4

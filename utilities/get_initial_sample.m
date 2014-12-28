@@ -11,7 +11,7 @@ end
 Dt = 1;
 T = length(Y);
 p = length(P.g);
-G = spdiags(ones(T,1)*[-P.g(end:-1:1),1],[-p:0],T,T);
+G = make_G_matrix(T,P.g);
 sp = G*Z(:);                                   % extract spikes
 c1 = sp(1:p);
 sp(1:p) = 0;
