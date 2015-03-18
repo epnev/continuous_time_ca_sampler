@@ -4,10 +4,11 @@ T = length(Y);
 N = length(SAMPLES.ns);
 
 Dt = 1/P.f;                                     % length of time bin
-if ~isfield(SAMPLES,'g');
-    SAMPLES.g = P.g*ones(N,1);
-end
-g = SAMPLES.g;
+% if ~isfield(SAMPLES,'g');
+%     SAMPLES.g = P.g*ones(N,1);
+% end
+% g = SAMPLES.g;
+g = P.g;
 tau = -Dt./log(g);
 
 if length(SAMPLES.Cb) == 2
@@ -17,15 +18,15 @@ else
 end
 
 C_rec = zeros(N,T);
-for rep = 1:N
-    trunc_spikes = ceil(SAMPLES.ss{rep}/Dt);
-    s_ = sparse(1,trunc_spikes,exp((SAMPLES.ss{rep} - Dt*trunc_spikes)/tau(rep)),1,T);
-    if marg
-        C_rec(rep,:) = SAMPLES.Cb(1) + SAMPLES.Am(rep)*filter(1,[1,-g(rep)],full(s_)+[SAMPLES.Cin(1),zeros(1,T-1)]);
-    else
-        C_rec(rep,:) = SAMPLES.Cb(rep) + SAMPLES.Am(rep)*filter(1,[1,-g(rep)],full(s_)+[SAMPLES.Cin(rep),zeros(1,T-1)]);
-    end
-end
+% for rep = 1:N
+%     trunc_spikes = ceil(SAMPLES.ss{rep}/Dt);
+%     s_ = sparse(1,trunc_spikes,exp((SAMPLES.ss{rep} - Dt*trunc_spikes)/tau(rep)),1,T);
+%     if marg
+%         C_rec(rep,:) = SAMPLES.Cb(1) + SAMPLES.Am(rep)*filter(1,[1,-g(rep)],full(s_)+[SAMPLES.Cin(1),zeros(1,T-1)]);
+%     else
+%         C_rec(rep,:) = SAMPLES.Cb(rep) + SAMPLES.Am(rep)*filter(1,[1,-g(rep)],full(s_)+[SAMPLES.Cin(rep),zeros(1,T-1)]);
+%     end
+% end
 Nc = 60;
 
 if marg

@@ -22,6 +22,6 @@ SAM.lam_ = length(spiketimes_)/(T*Dt);
 SAM.spiketimes_ = spiketimes_;
 
 SAM.A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
-SAM.b_   = P.Cb;                                   % initial baseline value'
-SAM.C_in = c1 + 1e-3;                              % initial value sample
+SAM.b_   = max(P.Cb,0.025);                        % initial baseline value'
+SAM.C_in = max(c1,1e-3);                           % initial value sample
 SAM.sg = P.sn;
