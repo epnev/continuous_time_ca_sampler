@@ -63,7 +63,7 @@ else
     if isfield(params,'std_move')
         std_move = params.std_move;
     else
-        std_move = 3;
+        std_move = 2;
     end
     if isfield(params,'add_move')
         add_move = params.add_move;
@@ -77,6 +77,11 @@ if gam_flag
 end
 
 p = length(P.g);                                % order of autoregressive process
+% if p == 1
+%     P.g = [P.g;0];
+%     p = 2;
+% end
+
 g = P.g(:)';
 if p == 1
     tau_2 = -Dt/log(g);                         % continuous time constant
@@ -157,8 +162,11 @@ if p == 1
     e_support = find(abs(ge)<prec,1);
     ge = sparse(ge);
     ef_d = ge(1:e_support)';
-    ef = {0, ef_d};
+    ef = [{[0,0], ef_d};{[0,0], cumsum(ef_d.^2)}];
 else
+    if P.g(2) == 0;
+        tau_1 = 1e-3;
+    end
     h = exp(-(Dt)/tau_2) - exp(-(Dt)/tau_1);
     ef_d = exp(-(0:T)/tau_2)/h;
     e_support = find(abs(ef_d)<prec,1);
@@ -188,7 +196,7 @@ end
 
 Sp = .1*eye(2+p);          % prior covariance
 Ld = inv(Sp);
-lb = [0.1,0.02,zeros(1,p)]';      % lower bound for [A,Cb,Cin]
+lb = [0.1,0.002,zeros(1,p)]';      % lower bound for [A,Cb,Cin]
 
 A_ = max(A_,1.1*lb(1));
 
@@ -285,7 +293,7 @@ for i = 1:N
     end
     if mod(i,100)==0
         fprintf('%i out of total %i samples drawn \n', i, N);
-    end    
+    end 
 end
 if marg_flag
     mub = mub/(N-B);

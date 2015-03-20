@@ -11,7 +11,7 @@ end
 if nargin == 2
     fprintf('Estimating time constant through autocorrelation function.. \n');
     tt1 = tic;
-    lags = 100;
+    lags = 15;
     XC = zeros(d,2*(lags+p)+1);
 
     for j = 1:d
