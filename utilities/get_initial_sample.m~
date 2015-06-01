@@ -1,11 +1,11 @@
-function SAM = get_initial_sample(Y,params)
+function SAM = get_initial_sample(Y,params,c)
 
 % obtain initial sample by performing sparse noise-constrained deconvolution
-% Author: Eftychios A. Pnevmatikakis
+% Author: Eftychios A. Pnevm
 
-    
-if isfield(params,'p'); options.p = params.p; else options.p = 1; end
-[c,b,c1,g,sn,sp] = constrained_foopsi(Y,params.b,params.c1,params.g,params.sn,options);
+if nargin == 2
+    [c,b,c1,g,sn,sp] = constrained_foopsi(Y,params.b,params.c1,params.g,params.sn);
+end
 
 Dt = 1;
 T = length(Y);
@@ -19,11 +19,8 @@ spiketimes_(spiketimes_ >= T*Dt) = 2*T*Dt - spiketimes_(spiketimes_ >= T*Dt);
 SAM.lam_ = length(spiketimes_)/(T*Dt);
 SAM.spiketimes_ = spiketimes_;
 
-SAM.A_   = max(median(sp(s_in)),max(sp(s_in))/4);  % initial amplitude value
-if length(g) == 2
-    SAM.A_   = SAM.A_/sqrt(g(1)^2+4*g(2));
-end
-SAM.b_   = max(b,range(Y)/25);                     % initial baseline value
-SAM.C_in = max(c1,(Y(1)-b)/10);                    % initial value sample
+SAM.A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
+SAM.b_   = max(b,0.025);                           % initial baseline value'
+SAM.C_in = max(c1,1e-3);                           % initial value sample
 SAM.sg = sn;                                       % initial noise value
 SAM.g = g;                                         % initial time constant value

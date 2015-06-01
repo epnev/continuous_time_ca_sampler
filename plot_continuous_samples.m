@@ -1,8 +1,9 @@
-function plot_continuous_samples(SAMPLES,P,Y)
+function plot_continuous_samples(SAMPLES,Y)
 
 T = length(Y);
 N = length(SAMPLES.ns);
 show_gamma = 0;
+P = SAMPLES.params;
 P.f = 1;
 g = P.g(:);
 p = length(g);
@@ -26,7 +27,7 @@ elseif p == 2
     tau_2 = -1/p2_continuous;                   %tau decay - larger
     G1 = spdiags(ones(T,1)*[-min(gr),1],[-1:0],T,T);
     G2 = spdiags(ones(T,1)*[-max(gr),1],[-1:0],T,T);
-    ge = [-G1\[1;zeros(T-1,1)],G2\[1;zeros(T-1,1)]];
+    ge = G2\[1;zeros(T-1,1)];
 else
     error('This order of the AR process is currently not supported');
 end
@@ -106,9 +107,6 @@ figure;
             title('Autocorrelation','fontweight','bold','fontsize',14)
         subplot(5,4,4+13); plot(1:N,SAMPLES.Cin); title('Initial Concentration','fontweight','bold','fontsize',14)
         xcov_Cin = xcov(SAMPLES.Cin,Nc,'coeff');
-        if p == 2
-            xcov_Cin = xcov_Cin(:,[1,4]);
-        end
         subplot(5,4,4+14); plot(-Nc:Nc,xcov_Cin); set(gca,'XLim',[-Nc,Nc])
             title('Autocorrelation','fontweight','bold','fontsize',14)
         subplot(5,4,4+15); plot(1:N,SAMPLES.sn2); title('Noise variance','fontweight','bold','fontsize',14)

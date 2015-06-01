@@ -10,7 +10,7 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % params.c1             initializer for initial concentration (estimated if not provided)
 % params.Nsamples       number of samples after burn in (default 500)
 % params.B              number of burn in samples (default 200)
-% params.marg           flag for marginalized sampler (default 0)
+% params.marg           flag for marginalized sampler (default 1)
 % params.upd_gam        flag for updating gamma (default 0)
 % params.gam_step       number of samples after which gamma is updated (default 50)
 % params.std_move       standard deviation of shifting kernel (default 3*Dt)
@@ -47,7 +47,7 @@ defparams.b = [];
 defparams.c1 = [];
 defparams.Nsamples = 500;
 defparams.B = 100;
-defparams.marg = 0;
+defparams.marg = 1;
 defparams.upd_gam = 0;
 defparams.gam_step = 50;
 defparams.std_move = 3;
@@ -67,12 +67,12 @@ else
     if ~isfield(params,'B'); params.B = defparams.B; end
     if ~isfield(params,'marg'); params.marg = defparams.marg; end
     if ~isfield(params,'upd_gam'); params.upd_gam = defparams.upd_gam; end
-    if ~isfield(params,'gam_step'); params.gam_step = defparams.gam_step; end
-    if ~isfield(params,'std_move'); params.std_move = defparams.std_move; end
-    if ~isfield(params,'add_move'); params.add_move = defparams.add_move; end
-    if ~isfield(params,'init'); params.init = defparams.init; end
-    if ~isfield(params,'f'); params.f = defparams.f; end
-    if ~isfield(params,'p'); params.p = defparams.p; end
+    if ~isfields(params,'gam_step'); params.gam_step = defparams.gam_step; end
+    if ~isfields(params,'std_move'); params.std_move = defparams.std_move; end
+    if ~isfields(params,'add_move'); params.add_move = defparams.add_move; end
+    if ~isfields(params,'init'); params.init = defparams.init; end
+    if ~isfields(params,'f'); params.f = defparams.f; end
+    if ~isfields(params,'p'); params.p = defparams.p; end
 end
        
 Dt = 1;                                     % length of time bin
@@ -120,7 +120,7 @@ else
     error('This order of the AR process is currently not supported');
 end
 
-sg = SAM.sg;
+sg = SAMP.sg;
 
 
 SAM = params.init;    
@@ -133,16 +133,21 @@ C_in = SAM.C_in;
 s_1 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_1),T,1);  
 s_2 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_2),T,1);  
 
+
+% A_   = max(median(sp(s_in)),0.11);             % initial amplitude value
+% b_   = P.Cb;                                   % initial baseline value'
+% C_in = c1 + 1e-3;                              % initial value sample
+
 prec = 1e-2;     % precision
 if p == 1
     h = exp(-(Dt)/tau_2);
-    ge = g.^((0:T-1)'); 
+    ge = P.g.^((0:T-1)'); 
     e_support = find(abs(ge)<prec,1);
     ge = sparse(ge);
     ef_d = ge(1:e_support)';
     ef = [{[0,0], ef_d};{[0,0], cumsum(ef_d.^2)}];
 else
-    if g(2) == 0;
+    if P.g(2) == 0;
         tau_1 = 1e-3;
     end
     h = exp(-(Dt)/tau_2) - exp(-(Dt)/tau_1);
@@ -153,11 +158,11 @@ else
     ef_h = -exp(-(0:T)/tau_1)/h;
     e_support = find(abs(ef_h)<prec,1);
     ef_h = ef_h(1:e_support);
+    %ef = {ef_h ef_d};
     ef = [{ef_h ef_d};{cumsum(ef_h.^2) cumsum(ef_d.^2)}];
-    ge = G2\[1;zeros(T-1,1)];
+    ge = [-G1\[1;zeros(T-1,1)],G2\[1;zeros(T-1,1)]];
 end
-B = params.B;
-N = params.Nsamples + B;
+N = Nsamples + B;
 Gs = (-G1\s_1(:)+G2\s_2(:))/h;
 
 
@@ -168,20 +173,20 @@ ns = zeros(N,1);
 Gam = zeros(N,1);
 if ~marg_flag
     Cb = zeros(N,1);
-    Cin = zeros(N,1);
+    Cin = zeros(N,p);
     SG = zeros(N,1);
 end
 
-Sp = .1*range(Y)*eye(3);                                    % prior covariance
+Sp = .1*eye(2+p);          % prior covariance
 Ld = inv(Sp);
-lb = [0.1*range(Y),0.002*range(Y),0]';      % lower bound for [A,Cb,Cin]
+lb = [0.1,0.002,zeros(1,p)]';      % lower bound for [A,Cb,Cin]
 
 A_ = max(A_,1.1*lb(1));
 
 mu = [A_;b_;C_in];                % prior mean 
 Ns = 15;                          % Number of HMC samples
 
-Ym = Y - ones(T,1)*mu(2) - ge*mu(3);
+Ym = Y - ones(T,1)*mu(2) - ge*mu(2+(1:p));
 
 mub = zeros(1+p,1);
 Sigb = zeros(1+p,1+p);
@@ -217,13 +222,13 @@ for i = 1:N
         if any(x_in < lb)
             x_in = max(x_in,1.1*lb);
         end
-        [temp,~] = HMC_exact2(eye(3), -lb, L, mu_post, 1, Ns, x_in);
+        [temp,~] = HMC_exact2(eye(2+p), -lb, L, mu_post, 1, Ns, x_in);
         Am(i) = temp(1,Ns);
         Cb(i) = temp(2,Ns);
-        Cin(i) = temp(3,Ns)';
+        Cin(i,:) = temp(2+(1:p),Ns)';
         A_ = Am(i);
         b_ = Cb(i);
-        C_in = Cin(i);
+        C_in = Cin(i,:)';
 
         Ym   = Y - b_ - ge*C_in;
         res   = Ym - A_*Gs;
@@ -293,4 +298,3 @@ SAMPLES.Am = Am(B+1:N)/h;
 if gam_flag
     SAMPLES.g = Gam(B+1:N);
 end
-SAMPLES.params = params.init;
