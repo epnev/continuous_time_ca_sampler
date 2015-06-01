@@ -5,8 +5,6 @@ T = 7000;
 ld = 0.1;   % rate spikes per second
 
 s = rand(1,round(T/dt)) < ld*dt;
-%s = zeros(1,round(T/dt));
-%s(0.95*round(T/dt)) = 1;
 tau_rise = 0.3;
 tau_decay = 1.5;
 hmax = tau_decay/(tau_decay+tau_rise)*(tau_rise/(tau_decay+tau_rise))^(tau_rise/tau_decay);
@@ -23,15 +21,11 @@ figure;plot(dt:dt:T,c); hold all;stem(1:T,y); drawnow;
         legend('True Calcium','Observed Values');
 %%  constrained foopsi
 [g2,h2] = tau_c2d(tau_rise,tau_decay,1);
-%P = arpfit(y,2);  % uncomment to estimate parameters
 P.f = 1;
 P.g = g2;
 P.sn = sg;
 params.marg = 0;
-y_r = y(:);
-[ca_foopsi,cb] = optimal_foopsi_lars(y(:)',g2,sg);  %% constrained foopsi
-G = make_G_matrix(T,g2);
-spikes_foopsi = G*ca_foopsi(:);
+[ca_foopsi,cb,c1,~,~,spikes_foopsi] = constrained_foopsi(y,[],[],g2);
 spiketimes{1} =  find(s)*dt;
 spikeRaster = samples_cell2mat(spiketimes,T,1);
 f = find(spikeRaster);
@@ -52,8 +46,6 @@ stem(spikes_foopsi); hold all;
     legend('Foopsi Spikes','Ground Truth');
     drawnow;
 %% MCMC   
-P.Cb = cb;
-SAM = get_initial_sample(y_r,P,ca_foopsi);
-params.init = SAM;
-SAMPLES2 = cont_ca_sampler(y_r,P,100,100,params);    %% MCMC        
-plot_continuous_samples(SAMPLES2,P,y_r(:));
+params.p = 2;
+SAMPLES2 = cont_ca_sampler(y,params);    %% MCMC        
+plot_continuous_samples(SAMPLES2,y(:));
