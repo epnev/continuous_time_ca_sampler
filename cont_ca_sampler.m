@@ -45,11 +45,11 @@ defparams.g = [];
 defparams.sn = [];
 defparams.b = [];
 defparams.c1 = [];
-defparams.Nsamples = 500;
+defparams.Nsamples = 100;
 defparams.B = 100;
 defparams.marg = 0;
-defparams.upd_gam = 0;
-defparams.gam_step = 50;
+defparams.upd_gam = 1; %changed from 1
+defparams.gam_step = 1; %changed from 50
 defparams.std_move = 3;
 defparams.add_move = ceil(T/100);
 defparams.init = [];
@@ -165,7 +165,7 @@ ss = cell(N,1);
 lam = zeros(N,1);
 Am = zeros(N,1);
 ns = zeros(N,1);
-Gam = zeros(N,1);
+Gam = zeros(N,p);
 if ~marg_flag
     Cb = zeros(N,1);
     Cin = zeros(N,1);
@@ -186,9 +186,20 @@ Ym = Y - ones(T,1)*mu(2) - ge*mu(3);
 mub = zeros(1+p,1);
 Sigb = zeros(1+p,1+p);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Extra tau-related params
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+tau1_std = .1;
+tau2_std = .1;
+tauMoves = [0 0];
+tau_min = 0;
+tau_max = 100;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 for i = 1:N
     if gam_flag
-        Gam(i) = g;
+        Gam(i,:) = g;
     end
     sg_ = sg;
     rate = @(t) lambda_rate(t,lam_);
@@ -258,15 +269,126 @@ for i = 1:N
                 ss_(1) = ss_(1) + mub(2)/(i-B);
             end
         
-            min_g = @(gam) min_gamma(gam,ss_(:),y_res(:));
-            g_new = fmincon(min_g,g,[],[],[],[],0,1,[],options);
+            %%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%
+            %update continuous taus
+            %%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%
+            
+            calciumNoiseVar = sg^2;
+            
+            %%%%%%%%%%%%%%%%%%%%%%%
+            % first update tau(1)
+            %%%%%%%%%%%%%%%%%%%%%%%
+            
+            %initial logC
+            logC = -(A_*Gs'-Ym')*(A_*Gs'-Ym')'; 
+            
+            tau_ = tau;
+            
+            tau_(1) = tau_(1)+(tau1_std*randn); %with bouncing off min and max
+            while tau_(1)>tau(2) || tau_(1)<tau_min
+                if tau_(1)<tau_min
+                    tau_(1) = tau_min+(tau_min-tau_(1));
+                elseif tau_(1)>tau(2)
+                    tau_(1) = tau(2)-(tau_(1)-tau(2));
+                end
+            end 
+        
+            gr_ = exp(Dt*(-1./tau_));
+           
+            h_ = exp(-(Dt)/tau_(2)) - exp(-(Dt)/tau_(1));
+            G1_ = spdiags(ones(T,1)*[-min(gr_),1],[-1:0],T,T);
+            G2_ = spdiags(ones(T,1)*[-max(gr_),1],[-1:0],T,T);
+            s_1_ = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_(1)),T,1);  
+            s_2_ = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_(2)),T,1);  
+            Gs_ = (-G1_\s_1_(:)+G2_\s_2_(:))/h_;
+            
+%             % alternative way of normalizing filters?
+%             ef_d = exp(-(0:T)/tau(2));
+%             ef_h = -exp(-(0:T)/tau(1));
+%             
+%             %compute maximum:
+%             to = (tau(1)*tau(2))/(tau(2)-tau(1))*log(tau(2)/tau(1)); %time of maximum
+%             max_val = exp(-to/tau(2))-exp(-to/tau(1)); %maximum
+%             ef = {ef_h/max_val ef_d/max_val};
+            
+            logC_ = -(A_*Gs_'-Ym')*(A_*Gs_'-Ym')';
+                
+            %accept or reject
+            prior_ratio = 1;
+    %         prior_ratio = gampdf(tau_(2),12,1)/gampdf(tau(2),12,1);
+            ratio = exp(sum(sum((1./(2*calciumNoiseVar)).*(logC_-logC))))*prior_ratio;
+            if ratio>1 %accept
+                tau = tau_;
+                tauMoves = tauMoves + [1 1];
+            elseif rand<ratio %accept
+                tau = tau_;
+                tauMoves = tauMoves + [1 1];
+            else
+                tauMoves = tauMoves + [0 1];
+            end
+            
+            %%%%%%%%%%%%%%%%%%%%%%%
+            % next update tau(2)
+            %%%%%%%%%%%%%%%%%%%%%%%
+            
+            %initial logC
+            logC = -(A_*Gs'-Ym')*(A_*Gs'-Ym')'; 
+    
+            tau_ = tau;
+
+            tau_(2) = tau_(2)+(tau2_std*randn);
+            while tau_(2)>tau_max || tau_(2)<tau_(1)
+                if tau_(2)<tau_(1)
+                    tau_(2) = tau_(1)+(tau_(1)-tau_(2));
+                elseif tau_(2)>tau_max
+                    tau_(2) = tau_max-(tau_(2)-tau_max);
+                end
+            end  
+        
+            gr_ = exp(Dt*(-1./tau_));
+           
+            h_ = exp(-(Dt)/tau_(2)) - exp(-(Dt)/tau_(1));
+            G1_ = spdiags(ones(T,1)*[-min(gr_),1],[-1:0],T,T);
+            G2_ = spdiags(ones(T,1)*[-max(gr_),1],[-1:0],T,T);
+            s_1_ = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_(1)),T,1);  
+            s_2_ = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_(2)),T,1);  
+            Gs_ = (-G1_\s_1_(:)+G2_\s_2_(:))/h_;
+            
+            logC_ = -(A_*Gs_'-Ym')*(A_*Gs_'-Ym')';
+                
+            %accept or reject
+            prior_ratio = 1;
+    %         prior_ratio = gampdf(tau_(2),12,1)/gampdf(tau(2),12,1);
+            ratio = exp(sum(sum((1./(2*calciumNoiseVar)).*(logC_-logC))))*prior_ratio;
+            if ratio>1 %accept
+                tau = tau_;
+                tauMoves = tauMoves + [1 1];
+            elseif rand<ratio %accept
+                tau = tau_;
+                tauMoves = tauMoves + [1 1];
+            else
+                tauMoves = tauMoves + [0 1];
+            end
+
+            
+            
+            
+            %convert to g for storage or whatnot 
+            g_new = gr_; %is this correct?
+            
+            %%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%
+%             min_g = @(gam) min_gamma(gam,ss_(:),y_res(:));
+%             g_new = fmincon(min_g,g,[],[],[],[],0,1,[],options);
             fprintf('new value %1.5f \n',g_new);
             g = g_new;
             P.g = g;
-            G = spdiags([-g*ones(T,1),ones(T,1)],[-1,0],T,T);
-            ge = P.g.^((0:T-1)'); 
-            ge(ge<prec) = 0;
-            tau(2) = -Dt/log(g);
+%             G = spdiags([-g*ones(T,1),ones(T,1)],[-1,0],T,T);
+%             ge = P.g.^((0:T-1)'); 
+%             ge(ge<prec) = 0;
+%             tau(2) = -Dt/log(g);
         end
     end
     if mod(i,100)==0
