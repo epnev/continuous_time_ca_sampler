@@ -88,7 +88,7 @@ if gam_flag
 end
 
 if isempty(params.g)
-    p = defparams.p;
+    p = params.p;
 else
     p = length(params.g);                       % order of autoregressive process
 end

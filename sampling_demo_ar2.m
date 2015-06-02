@@ -1,12 +1,12 @@
 clear all;
 addpath utilities
-dt = 5e-3;
+dt = 1e-1;
 T = 7000;
-ld = 0.1;   % rate spikes per second
+ld = 0.05;   % rate spikes per second
 
 s = rand(1,round(T/dt)) < ld*dt;
-tau_rise = 0.3;
-tau_decay = 1.5;
+tau_rise = 2;
+tau_decay = 10;
 hmax = tau_decay/(tau_decay+tau_rise)*(tau_rise/(tau_decay+tau_rise))^(tau_rise/tau_decay);
 [g,h1] = tau_c2d(tau_rise,tau_decay,dt);
 
@@ -17,7 +17,7 @@ c_true = c(round(1/dt):round(1/dt):round(T/dt));
 sg = hmax/4;        % noise level
 y = c_true + sg*randn(1,length(c_true));
 
-figure;plot(dt:dt:T,c); hold all;stem(1:T,y); drawnow;
+figure;plot(dt:dt:T,c); hold all; scatter(1:T,y,'r*'); drawnow; %stem(1:T,y); drawnow;
         legend('True Calcium','Observed Values');
 %%  constrained foopsi
 [g2,h2] = tau_c2d(tau_rise,tau_decay,1);
@@ -47,5 +47,6 @@ stem(spikes_foopsi); hold all;
     drawnow;
 %% MCMC   
 params.p = 2;
+params.g = g2;
 SAMPLES2 = cont_ca_sampler(y,params);    %% MCMC        
 plot_continuous_samples(SAMPLES2,y(:));

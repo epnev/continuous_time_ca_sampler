@@ -67,11 +67,12 @@ figure;
     set(gcf, 'PaperPositionMode', 'manual')
     set(gcf, 'PaperPosition',[0,0, 14, 15])
     set(gcf, 'Position',[2,2, 14, 15])
-    subplot(rows,4,[1:4]);plot(Dt*(1:T),Y); hold all; plot(Dt*(1:T),mean(C_rec,1),'linewidth',2); 
+    ha(1) = subplot(rows,4,[1:4]);plot(Dt*(1:T),Y); hold all; plot(Dt*(1:T),mean(C_rec,1),'linewidth',2); 
         title('Calcium traces','fontweight','bold','fontsize',14)
         legend('Raw data','Mean sample');
-    subplot(rows,4,[5:8]); imagesc((1:T)*Dt,1:N,samples_cell2mat(SAMPLES.ss,T)); 
+    ha(2) = subplot(rows,4,[5:8]); imagesc((1:T)*Dt,1:N,samples_cell2mat(SAMPLES.ss,T)); 
         title('Spike raster plot','fontweight','bold','fontsize',14)
+        linkaxes(ha,'x');
     subplot(rows,4,4+5); plot(1:N,SAMPLES.ns); title('# of spikes','fontweight','bold','fontsize',14)
     subplot(rows,4,4+6); plot(-Nc:Nc,xcov(SAMPLES.ns,Nc,'coeff')); set(gca,'XLim',[-Nc,Nc]);
         title('Autocorrelation','fontweight','bold','fontsize',14)
