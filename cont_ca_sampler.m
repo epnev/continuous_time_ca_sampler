@@ -190,7 +190,7 @@ Sigb = zeros(1+p,1+p);
 % Extra tau-related params
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 tau1_std = .1;
-tau2_std = .1;
+tau2_std = 1;
 tauMoves = [0 0];
 tau_min = 0;
 tau_max = 100;
@@ -210,8 +210,8 @@ for i = 1:N
     trunc_spikes = ceil(spiketimes/Dt);
     trunc_spikes(trunc_spikes == 0) = 1;
     %s_ = sparse(1,trunc_spikes,exp((spiketimes - Dt*trunc_spikes)/tau(2)) - exp((spiketimes - Dt*trunc_spikes)/tau(1)),1,T);
-    s_1 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau_1),T,1);  
-    s_2 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau_2),T,1);  
+    s_1 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau(1)),T,1);  
+    s_2 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau(2)),T,1);  
     Gs = (-G1\s_1(:)+G2\s_2(:))/h;
     ss{i} = spiketimes;
     nsp = length(spiketimes);
@@ -280,7 +280,7 @@ for i = 1:N
             %%%%%%%%%%%%%%%%%%%%%%%
             % first update tau(1)
             %%%%%%%%%%%%%%%%%%%%%%%
-            
+            if p >= 2
             %initial logC
             logC = -(A_*Gs'-Ym')*(A_*Gs'-Ym')'; 
             
@@ -303,7 +303,7 @@ for i = 1:N
             s_1_ = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_(1)),T,1);  
             s_2_ = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau_(2)),T,1);  
             Gs_ = (-G1_\s_1_(:)+G2_\s_2_(:))/h_;
-            
+                        
 %             % alternative way of normalizing filters?
 %             ef_d = exp(-(0:T)/tau(2));
 %             ef_h = -exp(-(0:T)/tau(1));
@@ -321,14 +321,16 @@ for i = 1:N
             ratio = exp(sum(sum((1./(2*calciumNoiseVar)).*(logC_-logC))))*prior_ratio;
             if ratio>1 %accept
                 tau = tau_;
+                h = h_; G1 = G1_; G2 = G2_; s_1 = s_1_; s_2 = s_2_; Gs = Gs_;
                 tauMoves = tauMoves + [1 1];
             elseif rand<ratio %accept
                 tau = tau_;
+                h = h_; G1 = G1_; G2 = G2_; s_1 = s_1_; s_2 = s_2_; Gs = Gs_;
                 tauMoves = tauMoves + [1 1];
             else
                 tauMoves = tauMoves + [0 1];
             end
-            
+            end
             %%%%%%%%%%%%%%%%%%%%%%%
             % next update tau(2)
             %%%%%%%%%%%%%%%%%%%%%%%
@@ -364,16 +366,15 @@ for i = 1:N
             ratio = exp(sum(sum((1./(2*calciumNoiseVar)).*(logC_-logC))))*prior_ratio;
             if ratio>1 %accept
                 tau = tau_;
+                h = h_; G1 = G1_; G2 = G2_; s_1 = s_1_; s_2 = s_2_; Gs = Gs_;
                 tauMoves = tauMoves + [1 1];
             elseif rand<ratio %accept
                 tau = tau_;
+                h = h_; G1 = G1_; G2 = G2_; s_1 = s_1_; s_2 = s_2_; Gs = Gs_;
                 tauMoves = tauMoves + [1 1];
             else
                 tauMoves = tauMoves + [0 1];
-            end
-
-            
-            
+            end            
             
             %convert to g for storage or whatnot 
             g_new = gr_; %is this correct?
@@ -413,6 +414,6 @@ SAMPLES.ss = ss(B+1:N);
 SAMPLES.ld = lam(B+1:N);
 SAMPLES.Am = Am(B+1:N)/h;
 if gam_flag
-    SAMPLES.g = Gam(B+1:N);
+    SAMPLES.g = Gam(B+1:N,:);
 end
 SAMPLES.params = params.init;
