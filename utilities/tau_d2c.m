@@ -3,7 +3,7 @@ function tau = tau_d2c(g,dt)
 % convert discrete time constantswith resolution dt to continuous 
 % h(t) = (1-exp(-t/tau(1)))*exp(-t/tau(2))
 
-gr = max(roots([1,-g]),0);
+gr = max(roots([1,-g(:)']),0);
 p1_continuous = log(min(gr))/dt; 
 p2_continuous = log(max(gr))/dt;
 tau_1 = -1/p1_continuous;                   %tau h - smaller (tau_d * tau_r)/(tau_d + tau_r)
