@@ -12,6 +12,8 @@ Pnevmatikakis, E., Merel, J., Pakman, A. &amp; Paninski, L. (2014).
 Bayesian spike inference from calcium imaging data. Asilomar Conf. on
 Signals, Systems, and Computers. http://arxiv.org/abs/1311.6864
 
+For initializing the MCMC sampler, the algorithm uses the constrained deconvolution method maintained separately in https://github.com/epnev/constrained-foopsi
+
 License
 =======
 
