@@ -43,9 +43,18 @@ end
 C_rec = zeros(N,T);
 for rep = 1:N
     %trunc_spikes = ceil(SAMPLES.ss{rep}/Dt);
-    s_1 =   sparse(ceil(SAMPLES.ss{rep}/Dt),1,exp((SAMPLES.ss{rep} - Dt*ceil(SAMPLES.ss{rep}/Dt))/tau_1),T,1);  
-    s_2 =   sparse(ceil(SAMPLES.ss{rep}/Dt),1,exp((SAMPLES.ss{rep} - Dt*ceil(SAMPLES.ss{rep}/Dt))/tau_2),T,1);  
-    Gs = (-G1\s_1(:)+ G2\s_2(:));
+    tau = SAMPLES.g(rep,:);
+    gr = exp(-1./tau);
+    if gr(1) == 0
+        G1 = sparse(1:T,1:T,Inf*ones(T,1));
+    else
+        G1 = spdiags(ones(T,1)*[-min(gr),1],[-1:0],T,T);
+    end
+    G2 = spdiags(ones(T,1)*[-max(gr),1],[-1:0],T,T);
+    ge = max(gr).^(0:T-1)';
+    s_1 =   sparse(ceil(SAMPLES.ss{rep}/Dt),1,exp((SAMPLES.ss{rep} - Dt*ceil(SAMPLES.ss{rep}/Dt))/tau(1)),T,1);  
+    s_2 =   sparse(ceil(SAMPLES.ss{rep}/Dt),1,exp((SAMPLES.ss{rep} - Dt*ceil(SAMPLES.ss{rep}/Dt))/tau(2)),T,1);  
+    Gs = (-G1\s_1(:)+ G2\s_2(:))/diff(gr);
     if marg
         %C_rec(rep,:) = SAMPLES.Cb(1) + SAMPLES.Am(rep)*filter(1,[1,-SAMPLES.g(rep,:)],full(s_)+[SAMPLES.Cin(:,1)',zeros(1,T-p)]);
         C_rec(rep,:) = SAMPLES.Cb(1) + SAMPLES.Am(rep)*Gs + (ge*SAMPLES.Cin(:,1));
