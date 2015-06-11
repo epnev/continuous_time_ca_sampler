@@ -39,5 +39,4 @@ function [newSpikeTrain, newCalcium, newLL] = removeSpike(oldSpikeTrain,oldCalci
     relevantResidual = obsCalcium(tmp)-oldCalcium(tmp);
     %newLL = oldLL - ( wk_d^2*norm(ef_d(1:length(tmp)))^2 + 2*relevantResidual*(wk_d*ef_d(1:length(tmp))'));
     newLL = oldLL - ( wk_d^2*ef_nd(length(tmp)) + 2*relevantResidual*(wk_d*ef_d(1:length(tmp))'));
-    %%%%%%%%%%%%%%%%%
-    
+    %%%%%%%%%%%%%%%%
