@@ -6,7 +6,7 @@ show_gamma = 0;
 P = SAMPLES.params;
 P.f = 1;
 g = P.g(:);
-p = length(g);
+p = min(length(g),2);
 Dt = 1/P.f;                                     % length of time bin
 if ~isfield(SAMPLES,'g');
     show_gamma = 0;

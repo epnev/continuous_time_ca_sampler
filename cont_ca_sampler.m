@@ -171,7 +171,8 @@ ef = [{ef_h ef_d};{cumsum(ef_h.^2) cumsum(ef_d.^2)}];
 
 B = params.B;
 N = params.Nsamples + B;
-Gs = (-G1\s_1(:)+G2\s_2(:))/diff(gr);
+if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
+Gs = (-G1sp(:)+G2\s_2(:))/diff(gr);
 
 ss = cell(N,1); 
 lam = zeros(N,1);
@@ -201,11 +202,11 @@ Sigb = zeros(2,2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Extra tau-related params
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-tau1_std = .1;
-tau2_std = 1;
+tau1_std = 1;
+tau2_std = 2;
 tauMoves = [0 0];
 tau_min = 0;
-tau_max = 100;
+tau_max = 500;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -223,7 +224,8 @@ for i = 1:N
     trunc_spikes(trunc_spikes == 0) = 1;
     s_1 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau(1)),T,1);
     s_2 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau(2)),T,1);  
-    Gs = (-G1\s_1(:)+G2\s_2(:))/diff(gr);
+    if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
+    Gs = (-G1sp+G2\s_2(:))/diff(gr);
     ss{i} = spiketimes;
     nsp = length(spiketimes);
     ns(i) = nsp;
@@ -307,7 +309,8 @@ for i = 1:N
             gr_ = exp(Dt*(-1./tau_));
             ge_ = max(gr_).^(0:T-1)';
             G2_ = spdiags(ones(T,1)*[-max(gr_),1],[-1:0],T,T);  
-            Gs_ = (-G1\s_1(:)+G2_\s_2_(:))/diff(gr_);
+            if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
+            Gs_ = (-G1sp+G2_\s_2_(:))/diff(gr_);
 
             logC_ = -norm(Y(:)-A_*Gs_-b_-C_in*ge_)^2;
 
