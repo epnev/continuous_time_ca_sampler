@@ -18,6 +18,8 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % params.init           initial sample 
 % params.f              imaging rate (default 1)
 % params.p              order of AR model (p == 1 or p == 2, default 1)
+% params.defg           default discrete time constants in case constrained_foopsi cannot find stable estimates
+% params.TauStd         standard deviation for time constants in continuous time (default [0.2,2])
 
 % output struct SAMPLES
 % spikes                T x Nsamples matrix with spikes samples
@@ -33,7 +35,7 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % sn                    Nsamples x 1 vector with samples for noise variance
 
 % If gamma is updated
-% g                     Nsamples x 1 vector with the gamma updates
+% g                     Nsamples x p vector with the gamma updates
 
 % Author: Eftychios A. Pnevmatikakis and Josh Merel
 
@@ -45,11 +47,11 @@ defparams.g = [];
 defparams.sn = [];
 defparams.b = [];
 defparams.c1 = [];
-defparams.Nsamples = 100;
-defparams.B = 100;
+defparams.Nsamples = 400;
+defparams.B = 200;
 defparams.marg = 0;
-defparams.upd_gam = 1; %changed from 1
-defparams.gam_step = 1; %changed from 50
+defparams.upd_gam = 1; 
+defparams.gam_step = 1;
 
 defparams.std_move = 3;
 defparams.add_move = ceil(T/100);
@@ -57,7 +59,7 @@ defparams.init = [];
 defparams.f = 1;
 defparams.p = 1;
 defparams.defg = [0.6,0.95];
-defparams.TauStd = [0.1,1];
+defparams.TauStd = [.1,1];
 
 if nargin < 2
     params = defparams;
@@ -88,10 +90,6 @@ gam_step = params.gam_step;
 std_move = params.std_move;
 add_move = params.add_move;
 
-if gam_flag
-    options = optimset('GradObj','On','Display','Off','Algorithm','interior-point','TolX',1e-6);
-end
-
 if isempty(params.g)
     p = params.p;
 else
@@ -113,10 +111,7 @@ if any(gr<0) || any(~isreal(gr)) || length(gr)>2 || max(gr)>0.998
 end
 tau = -Dt./log(gr);
 tau1_std = max(tau(1)/100,params.TauStd(1));
-tau2_std = min(tau(2)/10,params.TauStd(2));
-tauMoves = [0 0];
-tau_min = 0;
-tau_max = 2*tau(2);    
+tau2_std = min(tau(2)/5,params.TauStd(2)); 
 ge = max(gr).^(0:T-1)';
 if p == 1
     G1 = sparse(1:T,1:T,Inf*ones(T,1));
@@ -146,7 +141,6 @@ prec = 1e-2;     % precision
 
 ef_d = exp(-(0:T)/tau(2));
 if p == 1
-    t_max = 0;              %time of maximum
     h_max = 1;              % max value of transient    
     ef_h = [0,0];
     e_support = find(ef_d<prec*h_max,1,'first');
@@ -202,8 +196,7 @@ Sigb = zeros(2,2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Extra tau-related params
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-tau1_std = 1;
-tau2_std = 2;
+
 tauMoves = [0 0];
 tau_min = 0;
 tau_max = 500;
@@ -329,7 +322,6 @@ for i = 1:N
             
             ef_d = exp(-(0:T)/tau(2));
             if p == 1
-                t_max = 0;              %time of maximum
                 h_max = 1;              % max value of transient    
                 ef_h = [0,0];
                 e_support = find(ef_d<prec*h_max,1,'first');

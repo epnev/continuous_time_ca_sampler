@@ -2,7 +2,7 @@ function plot_continuous_samples(SAMPLES,Y)
 
 T = length(Y);
 N = length(SAMPLES.ns);
-show_gamma = 0;
+show_gamma = 1;
 P = SAMPLES.params;
 P.f = 1;
 g = P.g(:);
@@ -44,17 +44,17 @@ C_rec = zeros(N,T);
 for rep = 1:N
     %trunc_spikes = ceil(SAMPLES.ss{rep}/Dt);
     tau = SAMPLES.g(rep,:);
-    gr = exp(-1./tau);
-    if gr(1) == 0
-        G1 = sparse(1:T,1:T,Inf*ones(T,1));
-    else
-        G1 = spdiags(ones(T,1)*[-min(gr),1],[-1:0],T,T);
-    end
-    G2 = spdiags(ones(T,1)*[-max(gr),1],[-1:0],T,T);
+    gr = exp(-1./tau);    
     ge = max(gr).^(0:T-1)';
     s_1 =   sparse(ceil(SAMPLES.ss{rep}/Dt),1,exp((SAMPLES.ss{rep} - Dt*ceil(SAMPLES.ss{rep}/Dt))/tau(1)),T,1);  
     s_2 =   sparse(ceil(SAMPLES.ss{rep}/Dt),1,exp((SAMPLES.ss{rep} - Dt*ceil(SAMPLES.ss{rep}/Dt))/tau(2)),T,1);  
-    Gs = (-G1\s_1(:)+ G2\s_2(:))/diff(gr);
+    if gr(1) == 0
+        G1 = sparse(1:T,1:T,Inf*ones(T,1)); G1sp = zeros(T,1);
+    else
+        G1 = spdiags(ones(T,1)*[-min(gr),1],[-1:0],T,T); G1sp = G1\s_1(:);
+    end
+    G2 = spdiags(ones(T,1)*[-max(gr),1],[-1:0],T,T);
+    Gs = (-G1sp+ G2\s_2(:))/diff(gr);
     if marg
         %C_rec(rep,:) = SAMPLES.Cb(1) + SAMPLES.Am(rep)*filter(1,[1,-SAMPLES.g(rep,:)],full(s_)+[SAMPLES.Cin(:,1)',zeros(1,T-p)]);
         C_rec(rep,:) = SAMPLES.Cb(1) + SAMPLES.Am(rep)*Gs + (ge*SAMPLES.Cin(:,1));
@@ -85,12 +85,22 @@ figure;
     subplot(rows,4,4+5); plot(1:N,SAMPLES.ns); title('# of spikes','fontweight','bold','fontsize',14)
     subplot(rows,4,4+6); plot(-Nc:Nc,xcov(SAMPLES.ns,Nc,'coeff')); set(gca,'XLim',[-Nc,Nc]);
         title('Autocorrelation','fontweight','bold','fontsize',14)
-    subplot(rows,4,4+7); plot(1:N,SAMPLES.ld); title('Firing Rate','fontweight','bold','fontsize',14)
+    
     if ~show_gamma
+        subplot(rows,4,4+7); plot(1:N,SAMPLES.ld); title('Firing Rate','fontweight','bold','fontsize',14)
         subplot(rows,4,4+8); plot(-Nc:Nc,xcov(SAMPLES.ld,Nc,'coeff')); set(gca,'XLim',[-Nc,Nc])
         title('Autocorrelation','fontweight','bold','fontsize',14)
     else
-        subplot(rows,4,4+8);  plot(1:N,g); title('Discrete time constant','fontweight','bold','fontsize',14)
+        if gr(1) == 0
+            subplot(rows,4,4+7);  plot(1:N,exp(-1./SAMPLES.g(:,2))); title('Decay Time Constant','fontweight','bold','fontsize',14);
+            subplot(rows,4,4+8);  plot(-Nc:Nc,xcov(exp(-1./SAMPLES.g(:,2)),Nc,'coeff')); title('Autocorrelation','fontweight','bold','fontsize',14);
+            set(gca,'XLim',[-Nc,Nc])
+        else
+            subplot(rows,4,4+7);  plot(1:N,exp(-1./SAMPLES.g)); title('Decay Time Constants','fontweight','bold','fontsize',14);
+            g_cov = xcov(exp(-1./SAMPLES.g),Nc,'coeff');
+            subplot(rows,4,4+8);  plot(-Nc:Nc,g_cov(:,[1,4])); title('Autocorrelation','fontweight','bold','fontsize',14);
+            set(gca,'XLim',[-Nc,Nc])
+        end
     end
     
     subplot(rows,4,4+9); plot(1:N,SAMPLES.Am); title('Spike Amplitude','fontweight','bold','fontsize',14)
