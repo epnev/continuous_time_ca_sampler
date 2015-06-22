@@ -181,7 +181,7 @@ end
 
 Sp = .1*range(Y)*eye(3);                          % prior covariance
 Ld = inv(Sp);
-lb = [0.1*range(Y)/h_max*diff(gr),quantile(Y(:),0.05),0]';      % lower bound for [A,Cb,Cin]
+lb = [0.12*range(Y)/h_max*diff(gr),quantile(Y(:),0.05),0]';      % lower bound for [A,Cb,Cin]
 
 A_ = max(A_,1.1*lb(1));
 
