@@ -52,6 +52,9 @@ defparams.B = 200;
 defparams.marg = 0;
 defparams.upd_gam = 1; 
 defparams.gam_step = 1;
+defparams.A_lb = 0.1*range(Y);
+defparams.b_lb = quantile(Y,0.01);
+defparams.c1_lb = 0;
 
 defparams.std_move = 3;
 defparams.add_move = ceil(T/100);
@@ -60,6 +63,7 @@ defparams.f = 1;
 defparams.p = 1;
 defparams.defg = [0.6,0.95];
 defparams.TauStd = [.1,1];
+defparams.print_flag = 0;
 
 if nargin < 2
     params = defparams;
@@ -80,6 +84,10 @@ else
     if ~isfield(params,'p'); params.p = defparams.p; end
     if ~isfield(params,'defg'); params.defg = defparams.defg; end
     if ~isfield(params,'TauStd'); params.TauStd = defparams.TauStd; end
+    if ~isfield(params,'A_lb'); params.A_lb = defparams.A_lb; end
+    if ~isfield(params,'b_lb'); params.b_lb = defparams.b_lb; end
+    if ~isfield(params,'c1_lb'); params.c1_lb = defparams.c1_lb; end
+    if ~isfield(params,'print_flag'); params.print_flag = defparams.print_flag; end
 end
        
 Dt = 1;                                     % length of time bin
@@ -181,7 +189,7 @@ end
 
 Sp = .1*range(Y)*eye(3);                          % prior covariance
 Ld = inv(Sp);
-lb = [0.12*range(Y)/h_max*diff(gr),quantile(Y(:),0.05),0]';      % lower bound for [A,Cb,Cin]
+lb = [params.A_lb/h_max*diff(gr),params.b_lb,params.c1_lb]';      % lower bound for [A,Cb,Cin]
 
 A_ = max(A_,1.1*lb(1));
 
@@ -344,7 +352,7 @@ for i = 1:N
             ef = [{ef_h ef_d};{cumsum(ef_h.^2) cumsum(ef_d.^2)}];     
         end
     end
-    if mod(i,100)==0
+    if params.print_flag && mod(i,100)==0
         fprintf('%i out of total %i samples drawn \n', i, N);
     end 
 end
