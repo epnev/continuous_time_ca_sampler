@@ -1,4 +1,6 @@
-continuous_time_ca_sampler
+[![Join the chat at https://gitter.im/epnev/ca_source_extraction](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/epnev/ca_source_extraction?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+MCMC spike inference in continuous time
 ==========================
 
 The code takes as an input a time series vector of calcium observations
@@ -13,6 +15,16 @@ Bayesian spike inference from calcium imaging data. Asilomar Conf. on
 Signals, Systems, and Computers. http://arxiv.org/abs/1311.6864
 
 For initializing the MCMC sampler, the algorithm uses the constrained deconvolution method maintained separately in https://github.com/epnev/constrained-foopsi
+
+### Note
+
+This code is still in beta mode. For questions join the chat room (see the button above) or open an issue.
+
+### Contributors
+
+Eftychios A. Pnevmatikakis, Simons Foundation
+
+John Merel, Columbia University
 
 License
 =======
