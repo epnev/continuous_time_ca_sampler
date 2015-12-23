@@ -112,6 +112,12 @@ end
 SAM = params.init;
 
 g = SAM.g(:)';
+if g == 0
+    gr = [0.9,0.1];
+    pl = poly(gr);
+    g = -pl(2:end);
+    p = 2;
+end
 gr = sort(roots([1,-g(:)']));
 if p == 1; gr = [0,gr]; end
 if any(gr<0) || any(~isreal(gr)) || length(gr)>2 || max(gr)>0.998
