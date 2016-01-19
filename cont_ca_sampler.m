@@ -150,8 +150,12 @@ C_in = SAM.C_in;
 s_1 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(1)),T,1);  
 s_2 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(2)),T,1);  
 
+if ~isfield(params,'prec') % FN % (from Eftychios: prec specifies to what extent you want to discard the long slowly decaying tales of the ca response. Try setting it e.g., to 5e-2 instead of 1e-2 to speed things up.) 
+    prec = 1e-2;     % precision
+else
+    prec = params.prec; %5e-2; % FN 
+end
 
-prec = 1e-2;     % precision
 
 ef_d = exp(-(0:T)/tau(2));
 if p == 1
@@ -247,10 +251,16 @@ for i = 1:N
         if any(x_in < lb)
             x_in = max(x_in,1.1*lb);
         end
-        [temp,~] = HMC_exact2(eye(3), -lb, L, mu_post, 1, Ns, x_in);
-        Am(i) = temp(1,Ns);
-        Cb(i) = temp(2,Ns);
-        Cin(i) = temp(3,Ns)';
+        if all(isnan(L(:))) % FN added to avoid error in R = chol(L) in HMC_exact2 due to L not being positive definite. It happens when isnan(det(Ld + AM'*AM/sg^2)), ie when Ld + AM'*AM/sg^2 is singular (not invertible).
+            Am(i) = NaN;
+            Cb(i) = NaN;
+            Cin(i) = NaN';
+        else        
+            [temp,~] = HMC_exact2(eye(3), -lb, L, mu_post, 1, Ns, x_in);
+            Am(i) = temp(1,Ns);
+            Cb(i) = temp(2,Ns);
+            Cin(i) = temp(3,Ns)';
+        end
         A_ = Am(i);
         b_ = Cb(i);
         C_in = Cin(i);
