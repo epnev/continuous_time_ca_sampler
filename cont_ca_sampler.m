@@ -11,7 +11,7 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % params.Nsamples       number of samples after burn in (default 500)
 % params.B              number of burn in samples (default 200)
 % params.marg           flag for marginalized sampler (default 0)
-% params.upd_gam        flag for updating gamma (default 0)
+% params.upd_gam        flag for updating gamma (default 1)
 % params.gam_step       number of samples after which gamma is updated (default 50)
 % params.std_move       standard deviation of shifting kernel (default 3*Dt)
 % params.add_move       number of add moves per iteration (default T/100)
@@ -20,6 +20,9 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % params.p              order of AR model (p == 1 or p == 2, default 1)
 % params.defg           default discrete time constants in case constrained_foopsi cannot find stable estimates
 % params.TauStd         standard deviation for time constants in continuous time (default [0.2,2])
+% params.A_lb           lower bound for spike amplitude (default 0.1*range(Y))
+% params.b_lb           lower bound for baseline (default 0.01 quantile of Y)
+% params.c1_lb          lower bound for initial value (default 0)
 
 % output struct SAMPLES
 % spikes                T x Nsamples matrix with spikes samples
