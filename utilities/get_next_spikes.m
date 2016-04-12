@@ -10,6 +10,7 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% initialize some parameters
     T = length(calciumSignal); %for all of this, units are bins and spiketrains go from 0 to T where T is number of bins
+    ff = ~isnan(calciumSignal); % entries with data
     
 %   nsweeps = 1e3; %number of sweeps.
     nsweeps = 1;
@@ -22,7 +23,7 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
     N = length(si); %number of spikes in spiketrain
         
     %initial logC - compute likelihood initially completely - updates to likelihood will be local
-    logC = -(ci-calciumSignal)*(ci-calciumSignal)'; 
+    logC = -(ci(ff)-calciumSignal(ff))*(ci(ff)-calciumSignal(ff))'; 
     
     %m = p_spike*Dt*T;
     

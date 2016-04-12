@@ -23,6 +23,7 @@ function [newSpikeTrain, newCalcium, newLL] = removeSpike(oldSpikeTrain,oldCalci
 
     %if you really want to, ef*ef' could be precomputed and passed in
     relevantResidual = obsCalcium(tmp)-oldCalcium(tmp);
+    relevantResidual(isnan(relevantResidual)) = 0;
     %newLL = oldLL - ( wk_h^2*norm(ef_h(1:length(tmp)))^2 + 2*relevantResidual*(wk_h*ef_h(1:length(tmp))'));
     newLL = oldLL - ( wk_h^2*ef_nh(length(tmp)) + 2*relevantResidual*(wk_h*ef_h(1:length(tmp))'));
     oldCalcium = newCalcium;
@@ -37,6 +38,7 @@ function [newSpikeTrain, newCalcium, newLL] = removeSpike(oldSpikeTrain,oldCalci
 
     %if you really want to, ef*ef' could be precomputed and passed in
     relevantResidual = obsCalcium(tmp)-oldCalcium(tmp);
+    relevantResidual(isnan(relevantResidual)) = 0;
     %newLL = oldLL - ( wk_d^2*norm(ef_d(1:length(tmp)))^2 + 2*relevantResidual*(wk_d*ef_d(1:length(tmp))'));
     newLL = oldLL - ( wk_d^2*ef_nd(length(tmp)) + 2*relevantResidual*(wk_d*ef_d(1:length(tmp))'));
     %%%%%%%%%%%%%%%%

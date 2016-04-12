@@ -1,5 +1,7 @@
 function SAMPLES = cont_ca_sampler(Y,params)
 
+% add the capability of dealing with missing numbers
+
 % Continuous time sampler
 % Y                     data (normalized in [0,1])
 % P                     intialization parameters (discrete time constant P.g required)
@@ -44,6 +46,9 @@ function SAMPLES = cont_ca_sampler(Y,params)
 
 Y = Y(:);
 T = length(Y);
+isanY = ~isnan(Y);
+E = speye(T);
+E = E(isanY,:);
 
 % define default parameters
 defparams.g = [];
@@ -247,8 +252,9 @@ for i = 1:N
     lam_ = lam(i);
     
     AM = [Gs,ones(T,1),ge];
-    L = inv(Ld + AM'*AM/sg^2);
-    mu_post = (Ld + AM'*AM/sg^2)\(AM'*Y/sg^2 + Sp\mu);
+    EAM = E*AM;
+    L = inv(Ld + EAM'*EAM/sg^2);
+    mu_post = (Ld + EAM'*EAM/sg^2)\(EAM'*Y(isanY)/sg^2 + Sp\mu);
     if ~marg_flag
         x_in = [A_;b_;C_in];
         if any(x_in < lb)
@@ -270,7 +276,7 @@ for i = 1:N
 
         Ym   = Y - b_ - ge*C_in;
         res   = Ym - A_*Gs;
-        sg   = 1./sqrt(gamrnd(1+T/2,1/(0.1 + sum((res.^2)/2))));
+        sg   = 1./sqrt(gamrnd(1+length(isanY)/2,1/(0.1 + sum((res(isanY).^2)/2))));
         SG(i) = sg;
     else
         repeat = 1;
@@ -287,7 +293,7 @@ for i = 1:N
     if gam_flag
         if mod(i-B,gam_step) == 0  % update time constants
             if p >= 2       % update rise time constant
-                logC = -norm(Y(:) - AM*[A_;b_;C_in])^2; 
+                logC = -norm(Y(isanY) - EAM*[A_;b_;C_in])^2; 
                 tau_ = tau;
                 tau_temp = tau_(1)+(tau1_std*randn); 
                 while tau_temp >tau(2) || tau_temp<tau_min
@@ -299,7 +305,7 @@ for i = 1:N
                 G1_ = spdiags(ones(T,1)*[-min(gr_),1],[-1:0],T,T);
                 Gs_ = (-G1_\s_1_(:)+G2\s_2(:))/diff(gr_);
 
-                logC_ = -norm(Y(:)-A_*Gs-b_-C_in*ge)^2;
+                logC_ = -norm(E*(Y(:)-A_*Gs-b_-C_in*ge))^2;
                 %accept or reject
                 prior_ratio = 1;
         %        prior_ratio = gampdf(tau_(2),12,1)/gampdf(tau(2),12,1);
@@ -318,7 +324,7 @@ for i = 1:N
             %%%%%%%%%%%%%%%%%%%%%%%
 
             %initial logC
-            logC = -norm(Y(:)-A_*Gs-b_-C_in*ge)^2;
+            logC = -norm(E*(Y(:)-A_*Gs-b_-C_in*ge))^2;
             tau_ = tau;
             tau_temp = tau_(2)+(tau2_std*randn);
             while tau_temp>tau_max || tau_temp<tau_(1)
@@ -332,7 +338,7 @@ for i = 1:N
             if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
             Gs_ = (-G1sp+G2_\s_2_(:))/diff(gr_);
 
-            logC_ = -norm(Y(:)-A_*Gs_-b_-C_in*ge_)^2;
+            logC_ = -norm(E*(Y(:)-A_*Gs_-b_-C_in*ge_))^2;
 
             %accept or reject
             prior_ratio = 1;
