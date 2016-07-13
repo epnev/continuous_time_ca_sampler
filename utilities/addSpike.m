@@ -18,13 +18,14 @@ function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,
     %handle ef_h first
     newCalcium = oldCalcium;
     tmp = 1 + (floor(timeToAdd):min((length(ef_h)+floor(timeToAdd)-1),length(newCalcium)-1));
-    newCalcium(tmp) = newCalcium(tmp) + wk_h*ef_h(1:length(tmp));
+    wef_h = wk_h*ef_h(1:length(tmp));
+    newCalcium(tmp) = newCalcium(tmp) + wef_h;
     
     %if you really want to, ef*ef' could be precomputed and passed in
     relevantResidual = obsCalcium(tmp)-oldCalcium(tmp);
     relevantResidual(isnan(relevantResidual)) = 0;
     %newLL = oldLL - ( wk_h^2*norm(ef_h(1:length(tmp)))^2 - 2*relevantResidual*(wk_h*ef_h(1:length(tmp))'));
-    newLL = oldLL - ( wk_h^2*ef_nh(length(tmp)) - 2*relevantResidual*(wk_h*ef_h(1:length(tmp))'));
+    newLL = oldLL - ( wk_h^2*ef_nh(length(tmp)) - 2*relevantResidual*wef_h(:));
     oldCalcium = newCalcium;
     oldLL = newLL;
     %%%%%%%%%%%%%%%%%
@@ -32,11 +33,11 @@ function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,
     %%%%%%%%%%%%%%%%%
     %handle ef_d next
     tmp = 1 + (floor(timeToAdd):min((length(ef_d)+floor(timeToAdd)-1),length(newCalcium)-1));
-    newCalcium(tmp) = newCalcium(tmp) + wk_d*ef_d(1:length(tmp));
+    wef_d = wk_d*ef_d(1:length(tmp));
+    newCalcium(tmp) = newCalcium(tmp) + wef_d;
     
-    %if you really want to, ef*ef' could be precomputed and passed in
     relevantResidual = obsCalcium(tmp)-oldCalcium(tmp);
     relevantResidual(isnan(relevantResidual)) = 0;
     %newLL = oldLL - ( wk_d^2*norm(ef_d(1:length(tmp)))^2 - 2*relevantResidual*(wk_d*ef_d(1:length(tmp))'));
-    newLL = oldLL - ( wk_d^2*ef_nd(length(tmp)) - 2*relevantResidual*(wk_d*ef_d(1:length(tmp))'));
+    newLL = oldLL - ( wk_d^2*ef_nd(length(tmp)) - 2*relevantResidual*wef_d(:));
     %%%%%%%%%%%%%%%%%        

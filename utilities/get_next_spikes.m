@@ -23,7 +23,7 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
     N = length(si); %number of spikes in spiketrain
         
     %initial logC - compute likelihood initially completely - updates to likelihood will be local
-    logC = -(ci(ff)-calciumSignal(ff))*(ci(ff)-calciumSignal(ff))'; 
+    logC = -norm(ci(ff)-calciumSignal(ff))^2; 
     
     %m = p_spike*Dt*T;
     
