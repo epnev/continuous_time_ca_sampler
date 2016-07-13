@@ -155,8 +155,10 @@ A_ = SAM.A_*diff(gr);
 b_ = SAM.b_;
 C_in = SAM.C_in;
     
-s_1 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(1)),T,1);  
-s_2 = sparse(ceil(spiketimes_/Dt),1,exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(2)),T,1);  
+s_1 = zeros(T,1);
+s_2 = zeros(T,1);
+s_1(ceil(spiketimes_/Dt)) = exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(1));
+s_2(ceil(spiketimes_/Dt)) = exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(2));    
 
 if ~isfield(params,'prec') % FN % (from Eftychios: prec specifies to what extent you want to discard the long slowly decaying tales of the ca response. Try setting it e.g., to 5e-2 instead of 1e-2 to speed things up.) 
     prec = 1e-2;     % precision
@@ -236,13 +238,15 @@ for i = 1:N
     sg_ = sg;
     rate = @(t) lambda_rate(t,lam_);
     [spiketimes, ~]  = get_next_spikes(spiketimes_(:)',A_*Gs',Ym',ef,tau,sg_^2, rate, std_move, add_move, Dt, A_);
-    spiketimes_ = spiketimes;
     spiketimes(spiketimes<0) = -spiketimes(spiketimes<0);
     spiketimes(spiketimes>T*Dt) = 2*T*Dt - spiketimes(spiketimes>T*Dt); 
+    spiketimes_ = spiketimes;    
     trunc_spikes = ceil(spiketimes/Dt);
     trunc_spikes(trunc_spikes == 0) = 1;
-    s_1 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau(1)),T,1);
-    s_2 =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau(2)),T,1);  
+    s_1 = zeros(T,1);
+    s_2 = zeros(T,1);
+    s_1(trunc_spikes) = exp((spiketimes_ - Dt*trunc_spikes)/tau(1));
+    s_2(trunc_spikes) = exp((spiketimes_ - Dt*trunc_spikes)/tau(2));   
     if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
     Gs = (-G1sp+G2\s_2(:))/diff(gr);
     ss{i} = spiketimes;
@@ -301,7 +305,8 @@ for i = 1:N
                 end 
                 tau_(1) = tau_temp;
                 gr_ = exp(Dt*(-1./tau_));
-                s_1_ =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau_(1)),T,1);  
+                s_1_ = zeros(T,1);
+                s_1_(trunc_spikes) = exp((spiketimes_ - Dt*trunc_spikes)/tau_(1));
                 G1_ = spdiags(ones(T,1)*[-min(gr_),1],[-1:0],T,T);
                 Gs_ = (-G1_\s_1_(:)+G2\s_2(:))/diff(gr_);
 
@@ -331,11 +336,12 @@ for i = 1:N
                 tau_temp = tau_(2)+(tau2_std*randn);
             end  
             tau_(2) = tau_temp;
-            s_2_ =   sparse(trunc_spikes,1,exp((spiketimes_ - Dt*trunc_spikes)/tau_(2)),T,1);  
+            s_2_ = zeros(T,1);
+            s_2_(trunc_spikes) = exp((spiketimes_ - Dt*trunc_spikes)/tau_(2));
             gr_ = exp(Dt*(-1./tau_));
             ge_ = max(gr_).^(0:T-1)';
-            G2_ = spdiags(ones(T,1)*[-max(gr_),1],[-1:0],T,T);  
             if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
+            G2_ = spdiags(ones(T,1)*[-max(gr_),1],[-1:0],T,T);              
             Gs_ = (-G1sp+G2_\s_2_(:))/diff(gr_);
 
             logC_ = -norm(E*(Y(:)-A_*Gs_-b_-C_in*ge_))^2;

@@ -18,8 +18,6 @@ function [Xs, bounce_count] = HMC_exact2(F, g, M, mu_r, cov, L, initial_X)
 % initial_X   d x 1 vector. Must satisfy the constraint.
 
 
-
-
 % Output
 % Xs:      d x L matrix, each column is a sample
 % bounce_count:  number of times the particle bounced 
