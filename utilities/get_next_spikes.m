@@ -60,14 +60,15 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
                 tmpi_ = -(tmpi_);
             elseif tmpi_>T
                 tmpi_ = T-(tmpi_-T);
-            end
-            
+            end           
+
             %set si_ to set of spikes with the move and ci_ to adjusted calcium and update logC_ to adjusted
-            [si_, ci_, logC_] = removeSpike(si,ci,logC,ef,tau,calciumSignal,tmpi,ni,Dt,A);
-            [si_, ci_, logC_] = addSpike(si_,ci_,logC_,ef,tau,calciumSignal,tmpi_,Dt,A);
+%           [si_, ci_, logC_] = removeSpike(si,ci,logC,ef,tau,calciumSignal,tmpi,ni,Dt,A);
+%           [si_, ci_, logC_] = addSpike(si_,ci_,logC_,ef,tau,calciumSignal,tmpi_,ni,Dt,A);     
+            [si_, ci_, logC_] = replaceSpike(si,ci,logC,ef,tau,calciumSignal,tmpi,ni,tmpi_,Dt,A);
             
             %accept or reject
-            ratio = exp((1/(2*calciumNoiseVar))*(logC_-logC)*lam(tmpi)/lam(tmpi_));
+            ratio = exp((logC_-logC)/(2*calciumNoiseVar)*lam(tmpi)/lam(tmpi_));
             if ratio>1 %accept
                 si = si_;
                 ci = ci_;
@@ -112,7 +113,7 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
             %% add
             %propose a uniform add
             tmpi = T*Dt*rand;         
-            [si_, ci_, logC_] = addSpike(si,ci,logC,ef,tau,calciumSignal,tmpi,Dt,A);
+            [si_, ci_, logC_] = addSpike(si,ci,logC,ef,tau,calciumSignal,tmpi,length(si_)+1,Dt,A);
         
             %forward probability
             fprob = 1/(T*Dt);
