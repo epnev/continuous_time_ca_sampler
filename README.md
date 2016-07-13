@@ -1,5 +1,9 @@
 [![Join the chat at https://gitter.im/epnev/ca_source_extraction](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/epnev/ca_source_extraction?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Update 07/13/2016
+
+After some optimization the main loop of updating the spike locations and adding/removing spikes is now ~3x faster. Consider updating your code. Proper release will follow soon.
+
 MCMC spike inference in continuous time
 ==========================
 
