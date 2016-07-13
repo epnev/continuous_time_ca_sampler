@@ -1,4 +1,4 @@
-function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,oldLL,filter,tau,obsCalcium,timeToAdd,Dt,A)
+function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,oldLL,filter,tau,obsCalcium,timeToAdd,indx,Dt,A)
 
     tau_h = tau(1);
     tau_d = tau(2);
@@ -8,7 +8,7 @@ function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,
     ef_nh = filter{2,1};
     ef_nd = filter{2,2};
     
-    newSpikeTrain = [oldSpikeTrain timeToAdd]; %possibly inefficient, change if problematic (only likely to be a problem for large numbers of spikes)
+    newSpikeTrain = [oldSpikeTrain(1:indx-1) timeToAdd oldSpikeTrain(indx:end)]; %possibly inefficient, change if problematic (only likely to be a problem for large numbers of spikes)
     
     %use infinite precision to scale the precomputed FIR approximation to the calcium transient
     wk_h = A*exp((timeToAdd - Dt*ceil(timeToAdd/Dt))/tau_h);
