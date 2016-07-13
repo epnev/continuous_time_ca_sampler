@@ -118,7 +118,6 @@ if isempty(params.init)
    fprintf('done. \n');
 end 
 SAM = params.init;
-
 g = SAM.g(:)';
 if g == 0
     gr = [0.9,0.1];
@@ -249,6 +248,10 @@ for i = 1:N
     s_2(trunc_spikes) = exp((spiketimes_ - Dt*trunc_spikes)/tau(2));   
     if p == 1; G1sp = zeros(T,1); else G1sp = G1\s_1(:); end
     Gs = (-G1sp+G2\s_2(:))/diff(gr);
+    
+    %s_ = s_2 - s_1 - min(gr)*[0;s_2(1:end-1)] + max(gr)*[0;s_1(1:end-1)];
+    %Gs = filter(1,[1,-sum(gr),prod(gr)]',s_/diff(gr));
+    
     ss{i} = spiketimes;
     nsp = length(spiketimes);
     ns(i) = nsp;
