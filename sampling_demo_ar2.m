@@ -44,9 +44,15 @@ stem(spikes_foopsi); hold all;
     title('Foopsi Spikes','FontWeight','bold','Fontsize',14); xlabel('Timestep','FontWeight','bold','Fontsize',16);
     legend('Foopsi Spikes','Ground Truth');
     drawnow;
-%% MCMC   
+%% MCMC 
+
 params.p = 2;
 params.g = g2;
-
-SAMPLES = cont_ca_sampler(y,params);    %% MCMC       
-plot_continuous_samples(SAMPLES,y(:));
+params.sp = spikes_foopsi;   % pass results of foopsi for initialization (if not, they are computed)
+params.c = ca_foopsi;
+params.b = cb;
+params.c1 = c1;
+params.sn = sg;
+params.marg = 0;
+SAMPLES2 = cont_ca_sampler(y,params);    %% MCMC   
+plot_continuous_samples(SAMPLES2,y(:));

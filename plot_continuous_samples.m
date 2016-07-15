@@ -111,14 +111,9 @@ figure;
         subplot(4,4,15); plot(xx,normpdf(xx,SAMPLES.Cb(1),SAMPLES.Cb(2)));
             set(gca,'XLim',[xx(1),xx(end)])
             title('Marg. post. of baseline','fontweight','bold','fontsize',14)
-        if p == 1
-            xx = SAMPLES.Cin(1) + linspace(-4*SAMPLES.Cin(2),4*SAMPLES.Cin(2));
-            subplot(4,4,16); plot(xx,normpdf(xx,SAMPLES.Cin(1),SAMPLES.Cin(2)));
-        else
-            xx = linspace(min(SAMPLES.Cin(1),SAMPLES.Cin(2))-4*min(SAMPLES.Cin(3),SAMPLES.Cin(4)),max(SAMPLES.Cin(1),SAMPLES.Cin(2)) + 4*max(SAMPLES.Cin(3),SAMPLES.Cin(4)));
-            subplot(4,4,16); plot(xx,normpdf(xx,SAMPLES.Cin(1),SAMPLES.Cin(3))); hold all;
-                             plot(xx,normpdf(xx,SAMPLES.Cin(2),SAMPLES.Cin(4)));
-        end
+
+        xx = SAMPLES.Cin(1) + linspace(-4*SAMPLES.Cin(2),4*SAMPLES.Cin(2));
+        subplot(4,4,16); plot(xx,normpdf(xx,SAMPLES.Cin(1),SAMPLES.Cin(2)));
             set(gca,'XLim',[xx(1),xx(end)])
             title('Marg. post. of initial con','fontweight','bold','fontsize',14)
     else

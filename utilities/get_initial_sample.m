@@ -5,7 +5,18 @@ function SAM = get_initial_sample(Y,params)
 
     
 if isfield(params,'p'); options.p = params.p; else options.p = 1; end
-[c,b,c1,g,sn,sp] = constrained_foopsi(Y,params.b,params.c1,params.g,params.sn,options);
+if isempty(params.c) || isempty(params.b) || isempty(params.c1) || isempty(params.g) || isempty(params.sn) || isempty(params.sp)
+    fprintf('Initializing using noise constrained FOOPSI...  ');
+    [c,b,c1,g,sn,sp] = constrained_foopsi(Y,params.b,params.c1,params.g,params.sn,options);
+    fprintf('done. \n');
+else
+    c = params.c;
+    b = params.b;
+    c1 = params.c1;
+    g = params.g;
+    sn = params.sn;
+    sp = params.sp;
+end
 
 Dt = 1;
 T = length(Y);

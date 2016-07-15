@@ -3,7 +3,7 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % add the capability of dealing with missing numbers
 
 % Continuous time sampler
-% Y                     data (normalized in [0,1])
+% Y                     data
 % P                     intialization parameters (discrete time constant P.g required)
 % params                parameters structure
 % params.g              discrete time constant(s) (estimated if not provided)
@@ -27,11 +27,12 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % params.c1_lb          lower bound for initial value (default 0)
 
 % output struct SAMPLES
-% spikes                T x Nsamples matrix with spikes samples
-% bp                    Nsamples x 1 vector with samples for spiking prior probability
+% ss                    Nsamples x 1 cells with spike times for each sample
+% ns                    Nsamples x 1 vector with number of spikes
 % Am                    Nsamples x 1 vector with samples for spike amplitude
+% ld                    Nsamples x 1 vector with samples for firing rate
 
-% If marginalized sampler is used
+% If marginalized sampler is used (params.marg = 1)
 % Cb                    posterior mean and sd for baseline
 % Cin                   posterior mean and sd for initial condition
 % else
@@ -39,38 +40,42 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % Cin                   Nsamples x 1 vector with samples for initial concentration
 % sn                    Nsamples x 1 vector with samples for noise variance
 
-% If gamma is updated
+% If gamma is updated (params.upd_gam = 1)
 % g                     Nsamples x p vector with the gamma updates
 
 % Author: Eftychios A. Pnevmatikakis and Josh Merel
 
 Y = Y(:);
 T = length(Y);
-isanY = ~isnan(Y);
+isanY = ~isnan(Y);                          % Deal with possible missing entries
 E = speye(T);
 E = E(isanY,:);
 
 % define default parameters
-defparams.g = [];
-defparams.sn = [];
-defparams.b = [];
-defparams.c1 = [];
-defparams.Nsamples = 400;
-defparams.B = 200;
-defparams.marg = 0;
-defparams.upd_gam = 1; 
-defparams.gam_step = 1;
-defparams.A_lb = 0.1*range(Y);
-defparams.b_lb = quantile(Y,0.01);
-defparams.c1_lb = 0;
+defparams.g = [];                           % initializer for time constants
+defparams.sn = [];                          % initializer for noise std
+defparams.b = [];                           % initializer for baseline concentration
+defparams.c1 = [];                          % initializer for initial concentration
+defparams.c = [];                           % initializer for calcium concentration
+defparams.sp = [];                          % initializer for spiking signal
+defparams.Nsamples = 400;                   % number of samples after burn in period
+defparams.B = 200;                          % length of burn in period
+defparams.marg = 0;                         % flag to marginalize out baseline and initial concentration
+defparams.upd_gam = 1;                      % flag for updating time constants
+defparams.gam_step = 1;                     % flag for how often to update time constants
+defparams.A_lb = 0.1*range(Y);              % lower bound for spike amplitude
+defparams.b_lb = quantile(Y,0.01);          % lower bound for baseline
+defparams.c1_lb = 0;                        % lower bound for initial concentration
 
-defparams.std_move = 3;
-defparams.add_move = ceil(T/100);
-defparams.init = [];
-defparams.f = 1;
-defparams.p = 1;
-defparams.defg = [0.6,0.95];
-defparams.TauStd = [.1,1];
+defparams.std_move = 3;                     % standard deviation of spike move kernel
+defparams.add_move = ceil(T/100);           % number of add moves
+defparams.init = [];                        % sampler initializer
+defparams.f = 1;                            % imaging rate (irrelevant)
+defparams.p = 1;                            % order of AR process (use p = 1 or p = 2)
+defparams.defg = [0.6,0.95];                % default time constant roots
+defparams.TauStd = [.1,1];                  % Standard deviation for time constant proposal
+defparams.prec = 1e-2;                      % Precision parameter when adding new spikes
+defparams.con_lam = true;                   % Flag for constant firing across time
 defparams.print_flag = 0;
 
 if nargin < 2
@@ -80,6 +85,8 @@ else
     if ~isfield(params,'sn'); params.sn = defparams.sn; end
     if ~isfield(params,'b'); params.b = defparams.b; end
     if ~isfield(params,'c1'); params.c1 = defparams.c1; end
+    if ~isfield(params,'c'); params.c = defparams.c; end
+    if ~isfield(params,'sp'); params.sp = defparams.sp; end
     if ~isfield(params,'Nsamples'); params.Nsamples = defparams.Nsamples; end
     if ~isfield(params,'B'); params.B = defparams.B; end
     if ~isfield(params,'marg'); params.marg = defparams.marg; end
@@ -95,7 +102,9 @@ else
     if ~isfield(params,'A_lb'); params.A_lb = defparams.A_lb; end
     if ~isfield(params,'b_lb'); params.b_lb = defparams.b_lb; end
     if ~isfield(params,'c1_lb'); params.c1_lb = defparams.c1_lb; end
-    if ~isfield(params,'print_flag'); params.print_flag = defparams.print_flag; end
+    if ~isfield(params,'prec'); params.prec = defparams.prec; end
+    if ~isfield(params,'con_lam'); params.con_lam = defparams.con_lam; end
+    if ~isfield(params,'print_flag'); params.print_flag = defparams.print_flag; end    
 end
        
 Dt = 1;                                     % length of time bin
@@ -113,14 +122,13 @@ else
 end
 
 if isempty(params.init)
-   fprintf('Initializing using noise constrained FOOPSI...  ');
-   params.init = get_initial_sample(Y,params);
-   fprintf('done. \n');
+   params.init = get_initial_sample(Y,params);   
 end 
 SAM = params.init;
-g = SAM.g(:)';
+
+g = SAM.g(:)';   % check initial time constants, if not reasonable set to default values 
 if g == 0
-    gr = [0.9,0.1];
+    gr = params.defg;
     pl = poly(gr);
     g = -pl(2:end);
     p = 2;
@@ -143,11 +151,8 @@ else
 end
 G2 = spdiags(ones(T,1)*[-max(gr),1],[-1:0],T,T);
 
-
 sg = SAM.sg;
 
-
-SAM = params.init;    
 spiketimes_ = SAM.spiketimes_;
 lam_ = SAM.lam_;
 A_ = SAM.A_*diff(gr);
@@ -159,14 +164,9 @@ s_2 = zeros(T,1);
 s_1(ceil(spiketimes_/Dt)) = exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(1));
 s_2(ceil(spiketimes_/Dt)) = exp((spiketimes_ - Dt*ceil(spiketimes_/Dt))/tau(2));    
 
-if ~isfield(params,'prec') % FN % (from Eftychios: prec specifies to what extent you want to discard the long slowly decaying tales of the ca response. Try setting it e.g., to 5e-2 instead of 1e-2 to speed things up.) 
-    prec = 1e-2;     % precision
-else
-    prec = params.prec; %5e-2; % FN 
-end
+prec = params.prec;
 
-
-ef_d = exp(-(0:T)/tau(2));
+ef_d = exp(-(0:T)/tau(2));   % construct transient exponentials
 if p == 1
     h_max = 1;              % max value of transient    
     ef_h = [0,0];
@@ -206,7 +206,7 @@ if ~marg_flag
     SG = zeros(N,1);
 end
 
-Sp = .1*range(Y)*eye(3);                          % prior covariance
+Sp = .1*range(Y)*eye(3);                          % prior covariance for [A,Cb,Cin]
 Ld = inv(Sp);
 lb = [params.A_lb/h_max*diff(gr),params.b_lb,params.c1_lb]';      % lower bound for [A,Cb,Cin]
 
@@ -230,13 +230,13 @@ tau_max = 500;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-for i = 1:N
+for i = 1:N 
     if gam_flag
         Gam(i,:) = tau;
     end
     sg_ = sg;
     rate = @(t) lambda_rate(t,lam_);
-    [spiketimes, ~]  = get_next_spikes(spiketimes_(:)',A_*Gs',Ym',ef,tau,sg_^2, rate, std_move, add_move, Dt, A_);
+    [spiketimes, ~]  = get_next_spikes(spiketimes_(:)',A_*Gs',Ym',ef,tau,sg_^2, rate, std_move, add_move, Dt, A_, params.con_lam);
     spiketimes(spiketimes<0) = -spiketimes(spiketimes<0);
     spiketimes(spiketimes>T*Dt) = 2*T*Dt - spiketimes(spiketimes>T*Dt); 
     spiketimes_ = spiketimes;    
@@ -293,8 +293,8 @@ for i = 1:N
         end                
         Am(i) = A_;
         if i > B
-           mub = mub + mu_post(2+(0:p));
-           Sigb = Sigb + L(2+(0:p),2+(0:p));
+           mub = mub + mu_post(1+(1:p));
+           Sigb = Sigb + L(1+(1:p),1+(1:p));
         end
     end
     if gam_flag
@@ -316,7 +316,6 @@ for i = 1:N
                 logC_ = -norm(E*(Y(:)-A_*Gs-b_-C_in*ge))^2;
                 %accept or reject
                 prior_ratio = 1;
-        %        prior_ratio = gampdf(tau_(2),12,1)/gampdf(tau(2),12,1);
                 ratio = exp((logC_-logC)/(2*sg^2))*prior_ratio;
                 if rand < ratio %accept
                     tau = tau_;
@@ -351,7 +350,6 @@ for i = 1:N
 
             %accept or reject
             prior_ratio = 1;
-    %       prior_ratio = gampdf(tau_(2),12,1)/gampdf(tau(2),12,1);
             ratio = exp((1./(2*sg^2)).*(logC_-logC))*prior_ratio;
             if rand<ratio %accept
                 tau = tau_;
@@ -397,7 +395,7 @@ end
 
 if marg_flag
     SAMPLES.Cb = [mub(1),sqrt(Sigb(1,1))];
-    SAMPLES.Cin = [mub(1+(1:p)),sqrt(diag(Sigb(1+(1:p),1+(1:p))))];
+    SAMPLES.Cin = [mub(2),sqrt(Sigb(2,2))]; %[mub(1+(1:p)),sqrt(diag(Sigb(1+(1:p),1+(1:p))))];
 else
     SAMPLES.Cb = Cb(B+1:N);
     SAMPLES.Cin = Cin(B+1:N,:);

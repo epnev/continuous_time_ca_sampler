@@ -1,4 +1,4 @@
-function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, lam, proposalVar, add_move, Dt, A)
+function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal,ef,tau,calciumNoiseVar, lam, proposalVar, add_move, Dt, A, con_lam)
     
     %addMoves, dropMoves, and timeMoves give acceptance probabilities for each subclass of move
     %the samples will be a cell array of lists of spike times - the spike times won't be sorted but this shouldn't be a problem.
@@ -35,17 +35,13 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
     % 4) Gibbs for time shifts with likelihood proposal add/drop
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    
-    
+            
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% loop over sweeps to generate samples
     addMoves = [0 0]; %first elem is number successful, second is number total
     dropMoves = [0 0];
     timeMoves = [0 0];
-    time_move = 0;
-    time_add = 0;
     for i = 1:nsweeps
     
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,7 +64,8 @@ function [samples, ci]  = get_next_spikes(curr_spikes,curr_calcium,calciumSignal
             [si_, ci_, logC_] = replaceSpike(si,ci,logC,ef,tau,calciumSignal,tmpi,ni,tmpi_,Dt,A);
             
             %accept or reject
-            ratio = exp((logC_-logC)/(2*calciumNoiseVar)*lam(tmpi)/lam(tmpi_));
+            ratio = exp((logC_-logC)/(2*calciumNoiseVar));
+            if ~con_lam; ratio = ratio*lam(tmpi)/lam(tmpi_); end
             if ratio>1 %accept
                 si = si_;
                 ci = ci_;
