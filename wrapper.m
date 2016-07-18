@@ -6,5 +6,8 @@ addpath(genpath('../constrained-foopsi'));
 Y = mean(squeeze(traceData.traces(:,7,:))); % average over ROI (high SNR)
 
 %% run MCMC sampler and plot results
-SAMP = cont_ca_sampler(Y);
+params.p = 1;
+params.print_flag = 1;
+params.B = 300;
+SAMP = cont_ca_sampler(Y,params);
 plot_continuous_samples(SAMP,Y);

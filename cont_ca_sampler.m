@@ -75,7 +75,7 @@ defparams.init = [];                        % sampler initializer
 defparams.f = 1;                            % imaging rate (irrelevant)
 defparams.p = 1;                            % order of AR process (use p = 1 or p = 2)
 defparams.defg = [0.6,0.95];                % default time constant roots
-defparams.TauStd = [.1,1];                  % Standard deviation for time constant proposal
+defparams.TauStd = [.2,2];                  % Standard deviation for time constant proposal
 defparams.prec = 1e-2;                      % Precision parameter when adding new spikes
 defparams.con_lam = true;                   % Flag for constant firing across time
 defparams.print_flag = 0;
@@ -117,26 +117,27 @@ gam_step = params.gam_step;
 std_move = params.std_move;
 add_move = params.add_move;
 
+if isempty(params.init)
+   params.init = get_initial_sample(Y,params);   
+end 
+SAM = params.init;
+
 if isempty(params.g)
     p = params.p;
 else
     p = length(params.g);                       % order of autoregressive process
 end
 
-if isempty(params.init)
-   params.init = get_initial_sample(Y,params);   
-end 
-SAM = params.init;
-
 g = SAM.g(:)';   % check initial time constants, if not reasonable set to default values 
-if g == 0
+
+if g == 0 
     gr = params.defg;
     pl = poly(gr);
     g = -pl(2:end);
     p = 2;
 end
 gr = sort(roots([1,-g(:)']));
-if p == 1; gr = [0,gr]; end
+if p == 1; gr = [0,max(gr)]; end
 if any(gr<0) || any(~isreal(gr)) || length(gr)>2 || max(gr)>0.998
     gr = params.defg;
 end
@@ -158,8 +159,8 @@ sg = SAM.sg;
 spiketimes_ = SAM.spiketimes_;
 lam_ = SAM.lam_;
 A_ = SAM.A_*diff(gr);
-b_ = SAM.b_;
-C_in = SAM.C_in;
+b_ = max(SAM.b_,prctile(Y,8));
+C_in = max(min(SAM.C_in,Y(1)-b_),0);
     
 s_1 = zeros(T,1);
 s_2 = zeros(T,1);
@@ -289,14 +290,19 @@ for i = 1:N
         SG(i) = sg;
     else
         repeat = 1;
+        cnt = 0;
         while repeat
             A_ = mu_post(1) + sqrt(L(1,1))*randn;
             repeat = (A_<0);
+            cnt = cnt + 1;
+            if cnt > 1e3
+                error('The marginalized sampler cannot find a valid amplitude value. Set params.marg = 0 and try again.')
+            end
         end                
         Am(i) = A_;
         if i > B
-           mub = mub + mu_post(1+(1:p));
-           Sigb = Sigb + L(1+(1:p),1+(1:p));
+           mub = mub + mu_post(2:3); %mu_post(1+(1:p));
+           Sigb = Sigb + L(2:3,2:3); %L(1+(1:p),1+(1:p));
         end
     end
     if gam_flag

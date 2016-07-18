@@ -135,7 +135,7 @@ function [new_spikes, new_calcium, moves]  = get_next_spikes(curr_spikes,curr_ca
             fprob = 1/N;
 
             %accept or reject
-            ratio = exp((1/(2*calciumNoiseVar))*(logC_ - logC))*(rprob/fprob)*(1/lam(si(tmpi))); %posterior times reverse prob/forward prob
+            ratio = exp((logC_ - logC)/(2*calciumNoiseVar))*(rprob/fprob)*(1/lam(si(tmpi))); %posterior times reverse prob/forward prob
 
             if ratio>1 %accept
                 si = si_;
