@@ -1,7 +1,16 @@
 function SAM = get_initial_sample(Y,params)
 
 % obtain initial sample by performing sparse noise-constrained deconvolution
-% Author: Eftychios A. Pnevmatikakis
+
+% Inputs:
+% Y:        observed fluorescence trace
+% params:   parameter struct (results of constrained foopsi can be passed here to avoid unnecessary computation)
+
+% Output:
+% SAM:      sample structure with values for spikes in continuous time,
+%               amplitude, baseline, noise, initial concentration and time constants
+
+% Author: Eftychios A. Pnevmatikakis, 2016, Simons Foundation
 
     
 if isfield(params,'p'); options.p = params.p; else options.p = 1; end

@@ -6,6 +6,8 @@ function [g,h1] = tau_c2d(tau_r,tau_d,dt)
 % h1: h(dt);
 % h*s can be written in discrete form as filter(h1,[1,-g],s)
 
+% Author: Eftychios A. Pnevmatikakis, 2016, Simons Foundation
+
 A = [-(2/tau_d+1/tau_r), - (tau_r+tau_d)/(tau_r*tau_d^2); 1 0];
 lc = eig(A*dt);
 ld = exp(lc);

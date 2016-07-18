@@ -1,5 +1,18 @@
 function plot_continuous_samples(SAMPLES,Y)
 
+% plot results of MCMC sampler
+% The mean calcium sample, spike sampler raster plot and samples for
+% amplitude, number of spikes, discrete time constants, noise variance, 
+% baseline and initial concentration are generated, together with their 
+% autocorrelation functions. If the marginalized flag was used, then the 
+% posterior pdfs of baseline and initial concentration are plotted.
+
+% Inputs:
+% SAMPLES:  structure with SAMPLES obtained from cont_ca_sampler.m
+% Y:        inpurt fluorescence trace
+
+% Author: Eftychios A. Pnevmatikakis, 2016, Simons Foundation
+
 T = length(Y);
 N = length(SAMPLES.ns);
 show_gamma = 1;
@@ -31,7 +44,6 @@ elseif p == 2
 else
     error('This order of the AR process is currently not supported');
 end
-
 
 
 if length(SAMPLES.Cb) == 2

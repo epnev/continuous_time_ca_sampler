@@ -1,19 +1,25 @@
 function c_m = make_mean_sample(SAMPLES,Y)
 
+% construct mean calcium sample from samples structure SAMPLES
+
+% Inputs:
+% SAMPLES:      samples struct output of cont_ca_sampler
+% Y:            observed fluorescence trace
+
+% Output:
+% c_m:          mean calcium sample
+
+% Author: Eftychios A. Pnevmatikakis, 2016, Simons Foundation.
 
 T = length(Y);
 N = length(SAMPLES.ns);
-show_gamma = 0;
 P = SAMPLES.params;
 P.f = 1;
 g = P.g(:);
-p = length(g);
 Dt = 1/P.f;                                     % length of time bin
 if ~isfield(SAMPLES,'g');
-    show_gamma = 0;
     SAMPLES.g = ones(N,1)*g';
 end
-
 
 
 if length(SAMPLES.Cb) == 2

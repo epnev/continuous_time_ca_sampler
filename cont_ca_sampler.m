@@ -1,10 +1,9 @@
 function SAMPLES = cont_ca_sampler(Y,params)
 
-% add the capability of dealing with missing numbers
+% MCMC continuous time sampler of spiketimes given a fluorescence trace Y
 
-% Continuous time sampler
+% Inputs:
 % Y                     data
-% P                     intialization parameters (discrete time constant P.g required)
 % params                parameters structure
 % params.g              discrete time constant(s) (estimated if not provided)
 % params.sn             initializer for noise (estimated if not provided)
@@ -12,7 +11,7 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % params.c1             initializer for initial concentration (estimated if not provided)
 % params.Nsamples       number of samples after burn in (default 500)
 % params.B              number of burn in samples (default 200)
-% params.marg           flag for marginalized sampler (default 0)
+% params.marg           flag for marginalized sampler for baseline and initial concentration (default 0)
 % params.upd_gam        flag for updating gamma (default 1)
 % params.gam_step       number of samples after which gamma is updated (default 50)
 % params.std_move       standard deviation of shifting kernel (default 3*Dt)
@@ -44,6 +43,9 @@ function SAMPLES = cont_ca_sampler(Y,params)
 % g                     Nsamples x p vector with the gamma updates
 
 % Author: Eftychios A. Pnevmatikakis and Josh Merel
+
+% Reference: Pnevmatikakis et al., Bayesian spike inference from calcium
+%                imaging data, Asilomar 2013.
 
 Y = Y(:);
 T = length(Y);

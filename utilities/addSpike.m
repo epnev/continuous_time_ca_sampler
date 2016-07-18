@@ -1,12 +1,33 @@
-function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,oldLL,filter,tau,obsCalcium,timeToAdd,indx,Dt,A)
+function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,oldLL,filters,tau,obsCalcium,timeToAdd,indx,Dt,A)
+
+% Add a given spike to the existing spike train.
+
+% Inputs:
+% oldSpikeTrain:        current spike train
+% oldCalcium:           current noiseless calcium trace
+% oldLL:                current value of the log-likelihood function
+% filters:              exponential rise and decay kernels for calcium transient
+% tau:                  continuous time rise and decay time constants
+% obsCalcium:           observed fluorescence trace
+% timetoAdd:            time of the spike to be added
+% indx:                 place where the new spike is added in the existing spike train vector
+% Dt:                   time-bin width
+% A:                    spike amplitude
+
+% Outputs:
+% newSpikeTrain:        new vector of spike times
+% newCalcium:           new noiseless calcium trace
+% newLL:                new value of the log-likelihood function
+
+% Author: Eftychios A. Pnevmatikakis and Josh Merel
 
     tau_h = tau(1);
     tau_d = tau(2);
     
-    ef_h = filter{1,1};
-    ef_d = filter{1,2};
-    ef_nh = filter{2,1};
-    ef_nd = filter{2,2};
+    ef_h = filters{1,1};
+    ef_d = filters{1,2};
+    ef_nh = filters{2,1};
+    ef_nd = filters{2,2};
     
     newSpikeTrain = [oldSpikeTrain(1:indx-1) timeToAdd oldSpikeTrain(indx:end)]; %possibly inefficient, change if problematic (only likely to be a problem for large numbers of spikes)
     

@@ -1,12 +1,33 @@
-function [newSpikeTrain, newCalcium, newLL] = removeSpike(oldSpikeTrain,oldCalcium,oldLL,filter,tau,obsCalcium,timeToRemove,indx,Dt,A) %#codegen
-    
+function [newSpikeTrain, newCalcium, newLL] = removeSpike(oldSpikeTrain,oldCalcium,oldLL,filters,tau,obsCalcium,timeToRemove,indx,Dt,A)
+
+% Remove a given spike from the existing spike train.
+
+% Inputs:
+% oldSpikeTrain:        current spike train
+% oldCalcium:           current noiseless calcium trace
+% oldLL:                current value of the log-likelihood function
+% filters:              exponential rise and decay kernels for calcium transient
+% tau:                  continuous time rise and decay time constants
+% obsCalcium:           observed fluorescence trace
+% timetoRemove:         time of the spike to be removed
+% indx:                 place where the spike to be removed is in the existing spike train vector
+% Dt:                   time-bin width
+% A:                    spike amplitude
+
+% Outputs:
+% newSpikeTrain:        new vector of spike times
+% newCalcium:           new noiseless calcium trace
+% newLL:                new value of the log-likelihood function
+
+% Author: Eftychios A. Pnevmatikakis and Josh Merel
+
     tau_h = tau(1);
     tau_d = tau(2);
     
-    ef_h = filter{1,1};
-    ef_d = filter{1,2};
-    ef_nh = filter{2,1};
-    ef_nd = filter{2,2};
+    ef_h = filters{1,1};
+    ef_d = filters{1,2};
+    ef_nh = filters{2,1};
+    ef_nd = filters{2,2};
     
     newSpikeTrain = oldSpikeTrain;
     newSpikeTrain(indx) = [];

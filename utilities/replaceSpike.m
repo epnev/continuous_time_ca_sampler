@@ -1,5 +1,27 @@
 function [newSpikeTrain, newCalcium, newLL] = replaceSpike(oldSpikeTrain,oldCalcium,oldLL,filter,tau,obsCalcium,timetoRemove,indx,timetoAdd,Dt,A) %#codegen
-    
+
+% Replace a given spike with a new one in the existing spike train.
+
+% Inputs:
+% oldSpikeTrain:        current spike train
+% oldCalcium:           current noiseless calcium trace
+% oldLL:                current value of the log-likelihood function
+% filters:              exponential rise and decay kernels for calcium transient
+% tau:                  continuous time rise and decay time constants
+% obsCalcium:           observed fluorescence trace
+% timetoRemove:         time of the spike to be removed
+% indx:                 place where the spike to be removed is in the existing spike train vector
+% timetoAdd:            time of the spike to be added
+% Dt:                   time-bin width
+% A:                    spike amplitude
+
+% Outputs:
+% newSpikeTrain:        new vector of spike times
+% newCalcium:           new noiseless calcium trace
+% newLL:                new value of the log-likelihood function
+
+% Author: Eftychios A. Pnevmatikakis and Josh Merel
+
     tau_h = tau(1);
     tau_d = tau(2);
     
@@ -33,7 +55,6 @@ function [newSpikeTrain, newCalcium, newLL] = replaceSpike(oldSpikeTrain,oldCalc
         end
         newCalcium(tmp) = newCalcium(tmp) - wef_h;
     end
-    %%%%%%%%%%%%%%%%%
     
     %%%%%%%%%%%%%%%%%
     %handle ef_d next
