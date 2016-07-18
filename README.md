@@ -26,6 +26,10 @@ John Merel, Columbia University
 
 For questions join the chat room (see the button above) or open an issue (for bugs etc).
 
+### Acknowledgements
+
+Special thanks to Tim Machado for providing the demo dataset.
+
 License
 =======
 
