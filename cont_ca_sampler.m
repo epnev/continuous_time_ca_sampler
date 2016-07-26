@@ -267,14 +267,14 @@ for i = 1:N
     mu_post = (Ld + EAM'*EAM/sg^2)\(EAM'*Y(isanY)/sg^2 + Sp\mu);
     if ~marg_flag
         x_in = [A_;b_;C_in];
-        if any(x_in < lb)
-            x_in = max(x_in,1.1*lb);
+        if any(x_in <= lb)
+            x_in = max(x_in,1.1*lb) + 1e-5;
         end
         if all(isnan(L(:))) % FN added to avoid error in R = chol(L) in HMC_exact2 due to L not being positive definite. It happens when isnan(det(Ld + AM'*AM/sg^2)), ie when Ld + AM'*AM/sg^2 is singular (not invertible).
             Am(i) = NaN;
             Cb(i) = NaN;
             Cin(i) = NaN';
-        else        
+        else
             [temp,~] = HMC_exact2(eye(3), -lb, L, mu_post, 1, Ns, x_in);
             Am(i) = temp(1,Ns);
             Cb(i) = temp(2,Ns);
