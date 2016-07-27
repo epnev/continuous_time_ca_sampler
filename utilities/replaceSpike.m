@@ -49,9 +49,9 @@ function [newSpikeTrain, newCalcium, newLL] = replaceSpike(oldSpikeTrain,oldCalc
         if floor(timetoRemove) == floor(timetoAdd)        
             wef_h = (wk_hr-wk_ha)*ef_h(1:length(tmp));
         elseif floor(timetoRemove) > floor(timetoAdd)
-            wef_h = wk_hr*[zeros(1,floor(timetoRemove)-floor(timetoAdd)),ef_h(1:length(tmp)-(floor(timetoRemove)-floor(timetoAdd)))] - wk_ha*ef_h(1:length(tmp));
+            wef_h = wk_hr*[zeros(1,min(length(tmp),floor(timetoRemove)-floor(timetoAdd))),ef_h(1:length(tmp)-(floor(timetoRemove)-floor(timetoAdd)))] - wk_ha*ef_h(1:length(tmp));
         else
-            wef_h = wk_hr*ef_h(1:length(tmp)) - wk_ha*[zeros(1,floor(timetoAdd)-floor(timetoRemove)),ef_h(1:length(tmp)-(floor(timetoAdd)-floor(timetoRemove)))];
+            wef_h = wk_hr*ef_h(1:length(tmp)) - wk_ha*[zeros(1,min(length(tmp),floor(timetoAdd)-floor(timetoRemove))),ef_h(1:length(tmp)-(floor(timetoAdd)-floor(timetoRemove)))];
         end
         newCalcium(tmp) = newCalcium(tmp) - wef_h;
     end
@@ -62,9 +62,9 @@ function [newSpikeTrain, newCalcium, newLL] = replaceSpike(oldSpikeTrain,oldCalc
     if floor(timetoRemove) == floor(timetoAdd)        
         wef_d = (wk_dr-wk_da)*ef_d(1:length(tmp));
     elseif floor(timetoRemove) > floor(timetoAdd)
-        wef_d = wk_dr*[zeros(1,floor(timetoRemove)-floor(timetoAdd)),ef_d(1:length(tmp)-(floor(timetoRemove)-floor(timetoAdd)))] - wk_da*ef_d(1:length(tmp));
+        wef_d = wk_dr*[zeros(1,min(length(tmp),floor(timetoRemove)-floor(timetoAdd))),ef_d(1:length(tmp)-(floor(timetoRemove)-floor(timetoAdd)))] - wk_da*ef_d(1:length(tmp));
     else
-        wef_d = wk_dr*ef_d(1:length(tmp)) - wk_da*[zeros(1,floor(timetoAdd)-floor(timetoRemove)),ef_d(1:length(tmp)-(floor(timetoAdd)-floor(timetoRemove)))];
+        wef_d = wk_dr*ef_d(1:length(tmp)) - wk_da*[zeros(1,min(length(tmp),floor(timetoAdd)-floor(timetoRemove))),ef_d(1:length(tmp)-(floor(timetoAdd)-floor(timetoRemove)))];
     end
     newCalcium(tmp) = newCalcium(tmp) - wef_d;
 
