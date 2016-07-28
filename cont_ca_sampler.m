@@ -212,7 +212,6 @@ end
 Sp = .1*range(Y)*eye(3);                          % prior covariance for [A,Cb,Cin]
 Ld = inv(Sp);
 lb = [params.A_lb/h_max*diff(gr),params.b_lb,params.c1_lb]';      % lower bound for [A,Cb,Cin]
-
 A_ = max(A_,1.1*lb(1));
 
 mu = [A_;b_;C_in];                % prior mean 
@@ -268,7 +267,7 @@ for i = 1:N
     if ~marg_flag
         x_in = [A_;b_;C_in];
         if any(x_in <= lb)
-            x_in = max(x_in,1.1*lb) + 1e-5;
+            x_in = max(x_in,(1+0.1*sign(lb)).*lb) + 1e-5;
         end
         if all(isnan(L(:))) % FN added to avoid error in R = chol(L) in HMC_exact2 due to L not being positive definite. It happens when isnan(det(Ld + AM'*AM/sg^2)), ie when Ld + AM'*AM/sg^2 is singular (not invertible).
             Am(i) = NaN;
