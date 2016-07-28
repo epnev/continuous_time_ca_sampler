@@ -96,7 +96,7 @@ function [new_spikes, new_calcium, moves]  = get_next_spikes(curr_spikes,curr_ca
         %% add
         %propose a uniform add
         tmpi = T*Dt*rand;         
-        [si_, ci_, logC_] = addSpike(si,new_calcium,logC,filters,tau,calciumSignal,tmpi,length(si_)+1,Dt,A);
+        [si_, ci_, logC_] = addSpike(si,new_calcium,logC,filters,tau,calciumSignal,tmpi,length(si)+1,Dt,A);
 
         %forward probability
         fprob = 1/(T*Dt);

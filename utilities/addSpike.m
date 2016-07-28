@@ -29,6 +29,7 @@ function [newSpikeTrain, newCalcium, newLL] = addSpike(oldSpikeTrain,oldCalcium,
     ef_nh = filters{2,1};
     ef_nd = filters{2,2};
     
+    if isempty(oldSpikeTrain); indx = 1; end
     newSpikeTrain = [oldSpikeTrain(1:indx-1) timeToAdd oldSpikeTrain(indx:end)]; %possibly inefficient, change if problematic (only likely to be a problem for large numbers of spikes)
     
     %use infinite precision to scale the precomputed FIR approximation to the calcium transient
