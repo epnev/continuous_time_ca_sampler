@@ -60,6 +60,7 @@ defparams.b = [];                           % initializer for baseline concentra
 defparams.c1 = [];                          % initializer for initial concentration
 defparams.c = [];                           % initializer for calcium concentration
 defparams.sp = [];                          % initializer for spiking signal
+defparams.bas_nonneg = 0;                   % allow negative baseline during initialization
 defparams.Nsamples = 400;                   % number of samples after burn in period
 defparams.B = 200;                          % length of burn in period
 defparams.marg = 0;                         % flag to marginalize out baseline and initial concentration
@@ -89,6 +90,7 @@ else
     if ~isfield(params,'c1'); params.c1 = defparams.c1; end
     if ~isfield(params,'c'); params.c = defparams.c; end
     if ~isfield(params,'sp'); params.sp = defparams.sp; end
+    if ~isfield(params,'bas_nonneg'); params.bas_nonneg = defparams.bas_nonneg; end
     if ~isfield(params,'Nsamples'); params.Nsamples = defparams.Nsamples; end
     if ~isfield(params,'B'); params.B = defparams.B; end
     if ~isfield(params,'marg'); params.marg = defparams.marg; end

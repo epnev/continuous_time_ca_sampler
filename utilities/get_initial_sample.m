@@ -16,6 +16,7 @@ function SAM = get_initial_sample(Y,params)
 if isfield(params,'p'); options.p = params.p; else options.p = 1; end
 if isempty(params.c) || isempty(params.b) || isempty(params.c1) || isempty(params.g) || isempty(params.sn) || isempty(params.sp)
     fprintf('Initializing using noise constrained FOOPSI...  ');
+    options.bas_nonneg = params.bas_nonneg;
     [c,b,c1,g,sn,sp] = constrained_foopsi(Y,params.b,params.c1,params.g,params.sn,options);
     fprintf('done. \n');
 else
@@ -43,7 +44,8 @@ SAM.A_   = max(median(sp(s_in)),max(sp(s_in))/4);  % initial amplitude value
 if length(g) == 2
     SAM.A_   = SAM.A_/sqrt(g(1)^2+4*g(2));
 end
-SAM.b_   = max(b,range(Y)/25);                     % initial baseline value
+
+SAM.b_   = max(b,min(Y)+range(Y)/25);              % initial baseline value
 SAM.C_in = max(c1,(Y(1)-b)/10);                    % initial value sample
 SAM.sg = sn;                                       % initial noise value
 SAM.g = g;                                         % initial time constant value
