@@ -34,7 +34,7 @@ if ~exist('sp','var')
     G = make_G_matrix(T,params.g);
     sp = G*c;
 end
-s_in = sp>0.15*max(sp);
+s_in = sp>0.70*max(sp);
 spiketimes_ = Dt*(find(s_in) + rand(size(find(s_in))) - 0.5);
 spiketimes_(spiketimes_ >= T*Dt) = 2*T*Dt - spiketimes_(spiketimes_ >= T*Dt);
 SAM.lam_ = length(spiketimes_)/(T*Dt);

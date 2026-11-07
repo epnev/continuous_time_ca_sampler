@@ -322,7 +322,7 @@ for i = 1:N
                 G1_ = spdiags(ones(T,1)*[-min(gr_),1],[-1:0],T,T);
                 Gs_ = (-G1_\s_1_(:)+G2\s_2(:))/diff(gr_);
 
-                logC_ = -norm(E*(Y(:)-A_*Gs-b_-C_in*ge))^2;
+                logC_ = -norm(E*(Y(:)-A_*Gs_-b_-C_in*ge))^2;
                 %accept or reject
                 prior_ratio = 1;
                 ratio = exp((logC_-logC)/(2*sg^2))*prior_ratio;
